@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WGeneral">
+        <attr name="index"          format="reference|integer" />
+        <attr name="myclass"        format="string" />
+        <!-- attributes for selector -->
+        <attr name="selector_mode">
+            <enum name="tab"    value="0" />
+            <enum name="slide"  value="1" />
+        </attr>
+    </declare-styleable>
+</resources>

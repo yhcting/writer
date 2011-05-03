@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Writer</string>
+    
+    <!-- menu string -->
+    <string name="pen_select">pen select</string>
+    <string name="save">Save</string>
+    <string name="open">Open</string>
+    <string name="newsheet">New</string>
+    <string name="delete">Delete</string>
+    
+    <string name="save_sheet">Save sheet</string>
+    <string name="file_name">File name</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    
+    <string name="width">Width</string>
+    <string name="height">Height</string>
+    
+    <string name="overwrite_question">Overwrite?</string>
+    <string name="delete_file_fails">Deleting file fails</string>
+    <string name="empty_filename">Empty file name is not allowed.</string>
+</resources>

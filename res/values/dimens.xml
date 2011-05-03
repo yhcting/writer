@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <dimen name="colormap_width">256px</dimen>
+    <dimen name="colormap_height">256px</dimen>
+    <dimen name="line_preview_height">66px</dimen>
+    <dimen name="lineview_height">30px</dimen>
+    <dimen name="lineview_width">100px</dimen>
+</resources>

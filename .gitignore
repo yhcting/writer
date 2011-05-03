@@ -1,0 +1,8 @@
+.*
+*~
+bin/
+gen/
+obj/
+libs/
+assets/
+src/classes/

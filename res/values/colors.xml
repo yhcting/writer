@@ -1,0 +1,7 @@
+<resources>
+    <drawable name="image_btn_pushed_bg">#7f5f5f5f</drawable>
+    <drawable name="touch_bar_color">#1f000000</drawable>
+    <drawable name="active_touch_bar_color">#1f00007f</drawable>
+    <drawable name="board_color">#ffffffff</drawable>
+    <drawable name="minimap_color">#3f000000</drawable>
+</resources>

@@ -1,0 +1,4 @@
+set solib-absolute-prefix $(pwd)/obj/local/armeabi/
+set solib-search-path $(pwd)/obj/local/armeabi/
+target remote :5039
+
