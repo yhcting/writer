@@ -3,3 +3,6 @@ GRTAGS
 GSYMS
 GTAGS
 ID
+*.o
+writer
+

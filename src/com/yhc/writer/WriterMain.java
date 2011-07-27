@@ -499,6 +499,15 @@ public class WriterMain extends Activity {
 		_board.initBoard();
 
 		{ // Just scope - Board
+			// TODO :
+			//	If preference has invalid values...
+			//	This routine may crash Writer...
+			//	Any safe way????
+			//	1st Step
+			//		Check it whether this unexpected case can be happened.
+			//	2nd Step
+			//		Guard code for exceptional case.
+
 			// Get from preference!!
 			SharedPreferences settings = getSharedPreferences(WConstants.PREF_NAME, 0);
 			// Create new board with preferred size.

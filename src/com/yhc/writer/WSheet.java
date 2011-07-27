@@ -36,7 +36,7 @@ class WSheet {
 
 	private final int _native_sheet;
 
-	private final Rect _boundary = new Rect();
+	private final Rect _boundary = new Rect(0, 0, 0, 0);
 
 	static {
 		System.loadLibrary("writer-jni");

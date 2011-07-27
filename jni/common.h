@@ -126,8 +126,54 @@ void
 dbg_tpf_print(int cat);
 
 void
-dbg_tpf_init();
+dbg_tpf_init(void);
 
 #endif /* CONFIG_DBG_STATISTICS */
+
+#ifdef CONFIG_MEMPOOL
+
+/****************
+ * NOTE!
+ *    Memory pool should be multi-thread-safe!!!
+ *    (mp_create / mp_destroy are not MT safe!)
+ ****************/
+
+/*
+ * mp : Memory Pool
+ */
+struct mp;
+
+/*
+ * size of pool will be expanded if needed.
+ * this is just 'initial' size
+ * grpsz  : memory block gropu size (number of element)
+ * elemsz : element size (in bytes)
+ */
+struct mp*
+mp_create(int elem_nr, int elem_sz);
+
+void
+mp_destroy(struct mp*);
+
+/*
+ * get one block from pool.
+ */
+void*
+mp_get(struct mp*);
+
+/*
+ * return block to pool.
+ */
+void
+mp_put(struct mp*, void* block);
+
+/*
+ * return number of element size
+ */
+int
+mp_sz(struct mp*);
+
+
+#endif /* CONFIG_MEMPOOL */
 
 #endif /* _COMMOn_H_ */

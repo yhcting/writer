@@ -43,15 +43,18 @@
 
 /*
  * use memory pool for line/node
- * (Not implemented yet!)
+ * (Not fully implemented yet!!)
  * pros
  *     performance enhencment
  *     (we can save time for calling 'malloc')
  * cons
  *     memory usage is kept as it's maximum vaule.
+ *
+ * Real test shows that this makes improvement.
+ * But, it's not dominant on performance.
  */
-/* #define CONFIG_MEMPOOL */
+#define CONFIG_MEMPOOL
 
-/* #define CONFIG_DBG_STATISTICS */
+#define CONFIG_DBG_STATISTICS
 
 #endif /* __CONFIg_h__ */

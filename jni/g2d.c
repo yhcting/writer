@@ -69,7 +69,7 @@ g2d_splitY(int* out_intersectx,
 
 #include <assert.h>
 
-void test_g2d()
+void test_g2d(void)
 {
 	int out;
 

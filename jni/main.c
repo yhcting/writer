@@ -41,7 +41,7 @@ static struct _tpf {
 } _tpfs[DBG_PERF_NR];
 
 static unsigned long long
-_utime() {
+_utime(void) {
 	struct timeval tv;
 	if (gettimeofday(&tv, NULL))
 		assert(0);

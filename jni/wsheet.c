@@ -34,15 +34,6 @@
  *     (Number of lines can be reachs to 1,000,000!! We should consider this!)
  */
 
-#ifdef CONFIG_MEMPOOL
-
-#error Not implemented yet!
-#	define _NODE_MPSZ     0
-#	define _LINE_MPSZ     0
-#	define _INVALID_IDX   0
-
-#endif /* CONFIG_MEMPOOL */
-
 /*
  * x-sorted. That is, (x0 <= x1) should be alwasy true!.
  */
@@ -73,11 +64,40 @@ struct div {
 struct wsheet {
 	int	     divW, divH, colN, rowN;
 	struct div** divs; /* divs[row][col] */
-#ifdef CONFIG_MEMPOOL
-	struct node* nmp;
-	struct node* lmp;
-#endif /* CONFIG_MEMPOOL */
 };
+
+/*
+ * Flag to check that this wsheet static values are initialized or not
+ */
+static int _initialized = 0;
+
+#ifdef CONFIG_MEMPOOL
+static struct mp* _nmp = NULL; /* node memory pool */
+#endif /* CONFIG_MEMPOOL */
+
+static void
+_init(void) {
+	ASSERT(!_initialized);
+	_initialized = 1;
+
+#ifdef CONFIG_MEMPOOL
+	_nmp = mp_create(256 * 1024, sizeof(struct node));
+#endif /* CONFIG_MEMPOOL */
+}
+
+static void _deinit(void) __attribute__((unused));
+static void
+_deinit(void) {
+	if (!_initialized)
+		return;
+	_initialized = 0;
+
+#ifdef CONFIG_MEMPOOL
+	mp_destroy(_nmp);
+#endif /* CONFIG_MEMPOOL */
+}
+
+
 
 static inline struct node*
 _node(struct list_link* link) {
@@ -166,8 +186,12 @@ _list_clean(struct list_link* head) {
 	struct node* n;
 	struct node* tmp;
 	list_foreach_item_removal_safe(n, tmp, head, struct node, lk) {
+#ifdef CONFIG_MEMPOOL
+		mp_put(_nmp, n);
+#else /* CONFIG_MEMPOOL */
 		/* freeing memory for Line should be done elsewhere! */
 		FREE(n);
+#endif /* CONFIG_MEMPOOL */
 	}
 	list_init_link(head);
 }
@@ -175,7 +199,11 @@ _list_clean(struct list_link* head) {
 static void
 _list_add_line(struct list_link* head, struct line* ln) {
 	struct node* n;
+#ifdef CONFIG_MEMPOOL
+	n = (struct node*)mp_get(_nmp);
+#else /* CONFIG_MEMPOOL */
 	MALLOC(n, struct node*, sizeof(*n));
+#endif /* CONFIG_MEMPOOL */
 	n->ln = ln;
 	list_add_last(head, &n->lk);
 }
@@ -299,11 +327,15 @@ _div_find_lines(struct div* div,
 /********************************
  * Functions for struct wsheet
  ********************************/
-static inline void*
-_wsheet_create() {
+static inline struct wsheet*
+_wsheet_create(void) {
 	struct wsheet* sh;
-	MALLOC(sh, void*, sizeof(*sh));
-	return (void*)sh;
+	MALLOC(sh, struct wsheet*, sizeof(*sh));
+
+	if (!_initialized)
+		_init();
+
+	return sh;
 }
 
 static inline void
@@ -346,6 +378,7 @@ _wsheet_destroy(struct wsheet* wsh) {
 		FREE(wsh->divs[i]);
 	}
 	FREE(wsh->divs);
+	FREE(wsh);
 }
 
 /*
@@ -685,12 +718,17 @@ _wsheet_cutout(struct wsheet* wsh, int l, int t, int r, int b) {
 
 		/* free link */
 		list_del(oln->divlk);
+#ifdef CONFIG_MEMPOOL
+		mp_put(_nmp, _node(oln->divlk));
+#else /* CONFIG_MEMPOOL */
 		FREE(_node(oln->divlk));
+#endif /* CONFIG_MEMPOOL */
 		FREE(oln);
 	}
 
 	_list_clean(&lns);
 }
+
 
 
 #include "jni.h"
@@ -860,13 +898,15 @@ Java_com_yhc_writer_WSheet__1nativeDraw(JNIEnv* env, jclass jclazz,
 
 	struct wsheet*     wsh = (struct wsheet*)sheet;
 	struct list_link   lns;
-	list_init_link(&lns);
-
-	_wsheet_find_lines(wsh, &lns, l, t, r, b);
 
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_check_start(DBG_PERF_DRAW_LINE);
 #endif /* CONFIG_DBG_STATISTICS */
+
+	list_init_link(&lns);
+
+	_wsheet_find_lines(wsh, &lns, l, t, r, b);
+
 
 #ifdef CONFIG_DUALCORE
 
@@ -915,11 +955,11 @@ Java_com_yhc_writer_WSheet__1nativeDraw(JNIEnv* env, jclass jclazz,
 
 #endif /* CONFIG_DUALCORE */
 
+	_list_clean(&lns);
+
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_check_end(DBG_PERF_DRAW_LINE);
 #endif /* CONFIG_DBG_STATISTICS */
-
-	_list_clean(&lns);
 
 	(*env)->ReleaseIntArrayElements(env, jarr, pixels, JNI_ABORT);
 }
@@ -1472,15 +1512,17 @@ static void _test_cutout(struct wsheet* wsh)
 
 }
 
-void test_wsheet()
+void test_wsheet(void)
 {
-	struct wsheet wsh;
-	_wsheet_init(&wsh, 20, 10, 10, 10);
-	_test_add(&wsh);
-	_test_find_lines(&wsh);
-	_test_cutout(&wsh);
+	struct wsheet* wsh;
+	wsh = _wsheet_create();
+	_wsheet_init(wsh, 20, 10, 10, 10);
+	_test_add(wsh);
+	_test_find_lines(wsh);
+	_test_cutout(wsh);
 
-	_wsheet_destroy(&wsh);
+	_wsheet_destroy(wsh);
+	_deinit();
 }
 
 #endif /* CONFIG_TEST_EXECUTABLE */
