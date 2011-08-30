@@ -212,7 +212,7 @@ _expand(struct mp* mp) {
 	for (i = 0; i < mp->grpsz; i++) {
 		newfbp[mp->nrgrp][i]
 			= (struct _blk*)newgrp[mp->nrgrp] + i * blksz;
-		newfbp[mp->nrgrp][i]->i = mp->nrgrp * mp->grpsz + i;
+		newfbp[mp->nrgrp][i]->i = _sz(mp) + i;
 	}
 
 	/* keep previous values */
