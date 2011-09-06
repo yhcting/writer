@@ -26,6 +26,7 @@
 #include "gtype.h"
 #include "g2d.h"
 #include "listut.h"
+#include "div.h"
 
 /********************************
  * Functions for div
@@ -33,29 +34,29 @@
 void
 div_find_lines(struct div* div,
 	       struct list_link* out,
-	       int l, int t, int r, int b) {
+	       int32_t l, int32_t t, int32_t r, int32_t b) {
 	struct node*   n;
 	struct line*   ln;
 	struct rect    rect;
-	char	       b_intersected;
+	bool           b_intersected;
 
 	rect_set(&rect, l, t, r, b);
 
 	list_foreach_item(n, &div->lns, struct node, lk) {
 		ln = n->ln;
-		b_intersected = 0;
+		b_intersected = false;
 		/* Check that line is expands on this rectangle region. */
 		if (rect_contains(&rect, ln->x0, ln->y0)
 		     || rect_contains(&rect, ln->x1, ln->y1)) {
 			/* trivial case! */
-			b_intersected = 1;
+			b_intersected = true;
 		} else {
-			int intersect;;
+			int32_t intersect;;
 			if (splitX(&intersect, ln, l, t, b)
 			    || splitX(&intersect, ln, r, t, b)
 			    || splitY(&intersect, ln, t, l, r)
 			    || splitY(&intersect, ln, b, l, r)) {
-				b_intersected = 1;
+				b_intersected = true;
 			}
 		}
 		if (b_intersected)

@@ -21,6 +21,9 @@
 #ifndef _DIv_h_
 #define _DIv_h_
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "common.h"
 #include "g2d.h"
 #include "listut.h"
@@ -28,10 +31,11 @@
 void
 div_find_lines(struct div* div,
 	       struct list_link* out,
-	       int l, int t, int r, int b);
+	       int32_t l, int32_t t, int32_t r, int32_t b);
 
 static inline void
-div_init(struct div* div, int l, int t, int r, int b) {
+div_init(struct div* div,
+	 int32_t l, int32_t t, int32_t r, int32_t b) {
 	list_init_link(&div->lns);
 	rect_set(&div->boundary, l, t, r, b);
 }

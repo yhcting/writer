@@ -159,7 +159,7 @@ Java_com_yhc_writer_WSheet__1nativeSave(JNIEnv* env, jclass jclazz,
 	struct wsheet*  wsh  = (struct wsheet*)sheet;
 	struct node*    n;
 	struct line*    ln;
-	int	        i, j, sz;
+	int32_t         i, j, sz;
 
 	if (NULL == fp)
 		goto bail;
@@ -217,7 +217,7 @@ Java_com_yhc_writer_WSheet__1nativeLoad(JNIEnv* env, jclass jclazz,
 	FILE*           fp   = fopen(path, "r");
 	struct wsheet*  wsh  = (struct wsheet*)sheet;
 	struct line*    ln;
-	int	        i, j, k, sz;
+	int32_t	        i, j, k, sz;
 
 	if (NULL == fp)
 		goto bail;

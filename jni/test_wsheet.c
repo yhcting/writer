@@ -26,17 +26,17 @@
 #include <stdio.h>
 #include <assert.h>
 
-static const int    _DIV_W  = 20;
-static const int    _DIV_H  = 10;
-static const int    _COL_N  = 10;
-static const int    _ROW_N  = 10;
+static const int32_t    _DIV_W  = 20;
+static const int32_t    _DIV_H  = 10;
+static const int32_t    _COL_N  = 10;
+static const int32_t    _ROW_N  = 10;
 
 static void
 _line_sanity_check(struct wsheet* wsh) {
 	struct list_link   lout;
 	struct node*       n;
 	struct line*       ln;
-	int	           minx, maxx, miny, maxy, li, ri, ti, bi;
+	int32_t	           minx, maxx, miny, maxy, li, ri, ti, bi;
 
 	list_init_link(&lout);
 	wsheet_find_lines(wsh, &lout,

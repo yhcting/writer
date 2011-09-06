@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 #include "common.h"
-
+#include "mempool.h"
 /*
  * fbp memory strip (FbpMS)
  * ------------------------
@@ -116,17 +116,17 @@ struct _blk {
 	 * So, returned address should be aligned one.
 	 * And usually, this is aligned by sizeof(void*)
 	 */
-	int           i; /* index of free block pointer */
+	uint32_t      i; /* index of free block pointer */
 	struct _dummy d;
 };
 
 struct mp {
 	unsigned char**   grp;    /* groups of blocks */
-	int               grpsz;  /* size of grp - number of element in group*/
-	int               nrgrp;  /* number of group allocated */
+	uint32_t          grpsz;  /* size of grp - number of element in group*/
+	uint32_t          nrgrp;  /* number of group allocated */
 	struct _blk***    fbp;    /* Free Block Pointer group */
-	int               esz;    /* Element SiZe */
-	int               fbi;    /* Free Block Index */
+	uint32_t          esz;    /* Element SiZe */
+	uint32_t          fbi;    /* Free Block Index */
 	pthread_mutex_t   m;      /* Mutex for MT safety */
 };
 
@@ -153,32 +153,32 @@ _destroy_lock(struct mp* mp) {
 	pthread_mutex_destroy(&mp->m);
 }
 
-static inline int
+static inline uint32_t
 _align_adjust(struct mp* mp) {
 	return sizeof(void*) - (mp->esz % sizeof(void*));
 }
 
-static inline int
+static inline uint32_t
 _esz(struct mp* mp) {
 	return mp->esz + _align_adjust(mp);
 }
 
-static inline int
+static inline uint32_t
 _blksz(struct mp* mp) {
 	return sizeof(struct _blk) - sizeof(struct _dummy) + _esz(mp);
 }
 
 static inline struct _blk*
-_blk(struct mp* mp, int i) {
+_blk(struct mp* mp, uint32_t i) {
 	return *(mp->fbp[i / mp->grpsz] + i % mp->grpsz);
 }
 
 static inline void
-_setfbp(struct mp* mp, int i, struct _blk* b) {
+_setfbp(struct mp* mp, uint32_t i, struct _blk* b) {
 	*(mp->fbp[i / mp->grpsz] + i % mp->grpsz) = b;
 }
 
-static inline int
+static inline uint32_t
 _sz(struct mp* mp) {
 	return mp->nrgrp * mp->grpsz;
 }
@@ -188,10 +188,10 @@ _sz(struct mp* mp) {
  */
 static void
 _expand(struct mp* mp) {
-	int             i;
+	uint32_t        i;
 	unsigned char** newgrp;
 	struct _blk***  newfbp;
-	int             blksz;
+	uint32_t        blksz;
 
 	/* pre-calulate frequently used value */
 	blksz = _blksz(mp);
@@ -226,7 +226,7 @@ _expand(struct mp* mp) {
 }
 
 struct mp*
-mp_create(int grpsz, int elemsz) {
+mp_create(uint32_t grpsz, uint32_t elemsz) {
 	struct mp* mp;
 
 	wassert(grpsz > 0 && elemsz > 0);
@@ -247,7 +247,7 @@ mp_create(int grpsz, int elemsz) {
 
 void
 mp_destroy(struct mp* mp) {
-	int i;
+	uint32_t i;
 	_destroy_lock(mp);
 	for (i = 0; i < mp->nrgrp; i++) {
 		wfree(mp->fbp[i]);
@@ -283,7 +283,7 @@ void
 mp_put(struct mp* mp, void* block) {
 	struct _blk* b;
 	struct _blk* ub; /* used block */
-	int    ti;
+	uint32_t     ti;
 
 	b = container_of(block, struct _blk, d);
 	_lock(mp);
@@ -302,9 +302,9 @@ mp_put(struct mp* mp, void* block) {
 /*
  * return number of element size
  */
-int
+uint32_t
 mp_sz(struct mp* mp) {
-	int sz;
+	uint32_t sz;
 	_lock(mp);
 	sz = _sz(mp);
 	_unlock(mp);

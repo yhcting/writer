@@ -21,6 +21,8 @@
 #ifndef _WSHEEt_h_
 #define _WSHEEt_h_
 
+#include <stdint.h>
+
 #include "gtype.h"
 #include "div.h"
 
@@ -31,20 +33,22 @@ struct wsheet*
 wsheet_create(void);
 
 void
-wsheet_init(struct wsheet* wsh, int divW, int divH, int colN, int rowN);
+wsheet_init(struct wsheet* wsh,
+	    int32_t divW, int32_t divH, int32_t colN, int32_t rowN);
 
 void
 wsheet_destroy(struct wsheet* wsh);
 
 void
-wsheet_cutout(struct wsheet* wsh, int l, int t, int r, int b);
+wsheet_cutout(struct wsheet* wsh,
+	      int32_t l, int32_t t, int32_t r, int32_t b);
 
 void
 wsheet_add(struct wsheet* wsh,
-	   int x0, int y0,
-	   int x1, int y1,
-	   char thick,
-	   unsigned short color);
+	   int32_t x0, int32_t y0,
+	   int32_t x1, int32_t y1,
+	   uint8_t thick,
+	   uint16_t color);
 
 /*
  * NOTE!!!:
@@ -56,13 +60,13 @@ wsheet_add(struct wsheet* wsh,
  */
 void
 wsheet_find_lines(struct wsheet* wsh, struct list_link* out,
-		  int l, int t, int r, int b);
+		  int32_t l, int32_t t, int32_t r, int32_t b);
 
 
 
 static inline void
 wsheet_clean(struct wsheet* wsh) {
-	int i,j;
+	int32_t i,j;
 	for (i = 0; i < wsh->rowN; i++)
 		for (j = 0; j < wsh->colN; j++)
 			div_clean(&wsh->divs[i][j]);
@@ -70,10 +74,10 @@ wsheet_clean(struct wsheet* wsh) {
 
 void
 wsheet_draw(struct wsheet* wsh,
-	    int* pixels,
-	    int w, int h,
-	    int ox, int oy,
-	    int l, int t, int r, int b,
+	    int32_t* pixels,
+	    int32_t w, int32_t h,
+	    int32_t ox, int32_t oy,
+	    int32_t l, int32_t t, int32_t r, int32_t b,
 	    float zf);
 
 

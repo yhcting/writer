@@ -21,25 +21,27 @@
 #ifndef _D2d_h_
 #define _D2d_h_
 
-void
-copy_rect(int* dst, const int* src,
-	  int dw, int dh, int dl, int dt,
-	  int sw, int sh, int sl, int st,
-	  int width, int height);
+#include <stdint.h>
 
 void
-fill_rect(int* pixels, int w, int h,
-	  int color,
-	  int l, int t, int r, int b);
+copy_rect(int32_t* dst, const int32_t* src,
+	  int32_t dw, int32_t dh, int32_t dl, int32_t dt,
+	  int32_t sw, int32_t sh, int32_t sl, int32_t st,
+	  int32_t width, int32_t height);
 
 void
-draw_line(int* pixels, int w, int h,
-	  int color, char thick,
-	  int x0, int y0, int x1, int y1);
+fill_rect(int32_t* pixels, int32_t w, int32_t h,
+	  int32_t color,
+	  int32_t l, int32_t t, int32_t r, int32_t b);
+
+void
+draw_line(int32_t* pixels, int32_t w, int32_t h,
+	  int32_t color, uint8_t thick,
+	  int32_t x0, int32_t y0, int32_t x1, int32_t y1);
 
 
 static inline int
-_rbg16to32(short color) {
+_rbg16to32(int16_t color) {
 	return 0xff000000
 		| ((color & 0xf800) << 8)
 		| ((color & 0x07e0) << 5)

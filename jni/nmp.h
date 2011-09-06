@@ -33,7 +33,7 @@
 extern struct mp* g_wsheet_nmp;
 
 static inline void
-nmp_create(int grpsz) {
+nmp_create(uint32_t grpsz) {
 	g_wsheet_nmp = mp_create(grpsz, sizeof(struct node));
 }
 

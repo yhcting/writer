@@ -20,6 +20,7 @@
 
 #include "config.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -32,9 +33,9 @@
 
 
 static void
-_fill_rect_(int* pixels, int w, int h,
-	   int color,
-	   int l, int t, int r, int b) {
+_fill_rect_(int32_t* pixels, int32_t w, int32_t h,
+	    int32_t color,
+	    int32_t l, int32_t t, int32_t r, int32_t b) {
 	if (l < 0)
 		l=0;
 
@@ -50,12 +51,12 @@ _fill_rect_(int* pixels, int w, int h,
 	if ((t >= b) || (l >= r))
 		return ; /* nothing to draw. */
 
-	register int*	ds = pixels;
-	register int*	de;
-	int*		d_finish;
-	register int	col = color;
-	int		rw = r - l;
-	int		gap = w - rw;
+	register int32_t*    ds = pixels;
+	register int32_t*    de;
+	int32_t*             d_finish;
+	register int32_t     col = color;
+	int32_t              rw = r - l;
+	int32_t              gap = w - rw;
 	/* NOTE: 'r' and 'b' is open */
 	d_finish = ds + w * (b - 1) + r;
 	ds = ds + w * t + l;
@@ -68,8 +69,8 @@ _fill_rect_(int* pixels, int w, int h,
 
 #if defined(CONFIG_DUALCORE) && !defined(CONFIG_ARCH_ARM)
 struct _fill_rect_arg {
-	int* pixels;
-	int w, h, color, l, t, r, b;
+	int32_t* pixels;
+	int32_t  w, h, color, l, t, r, b;
 };
 
 static void*
@@ -86,9 +87,9 @@ _fill_rect_worker(void* arg) {
 
 
 void
-fill_rect(int* pixels, int w, int h,
-	  int color,
-	  int l, int t, int r, int b) {
+fill_rect(int32_t* pixels, int32_t w, int32_t h,
+	  int32_t  color,
+	  int32_t  l, int32_t t, int32_t r, int32_t b) {
 
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_check_start(DBG_PERF_FILL_RECT);
@@ -97,7 +98,6 @@ fill_rect(int* pixels, int w, int h,
 #if defined(CONFIG_DUALCORE) && !defined(CONFIG_ARCH_ARM)
 
 	{ /* Just scope */
-
 		pthread_t             thd;
 		void*                 ret;
 		struct _fill_rect_arg arg;
@@ -130,15 +130,15 @@ fill_rect(int* pixels, int w, int h,
 }
 
 void
-copy_rect(int* dst, const int* src,
-	  int dw, int dh, int dl, int dt,
-	  int sw, int sh, int sl, int st,
-	  int width, int height) {
-	register const int* ss = src;
-	register int*	    ds = dst + dw * dt + dl;
-	register int	    s_gap = sw - width;
-	register int	    d_gap = dw - width;
-	const int*	    s_finish;
+copy_rect(int32_t* dst, const int32_t* src,
+	  int32_t dw, int32_t dh, int32_t dl, int32_t dt,
+	  int32_t sw, int32_t sh, int32_t sl, int32_t st,
+	  int32_t width, int32_t height) {
+	register const int32_t* ss = src;
+	register int32_t*       ds = dst + dw * dt + dl;
+	register int32_t        s_gap = sw - width;
+	register int32_t        d_gap = dw - width;
+	const int32_t*	        s_finish;
 
 	s_finish = ss + sw * (height + st - 1) + sl + width;
 	ss = ss + sw * st + sl;
@@ -151,19 +151,20 @@ copy_rect(int* dst, const int* src,
 
 
 /* pre-calculated value for filling circle!! : to increase performance!! */
-static int _circle0[1][2] = {{0,1}};
-static int _circle1[3][2] = {{0,1},{-1,2},{0,1}};
-static int _circle2[5][2] = {{-1,2},{-2,3},{-2,3},{-2,3},{-1,2}};
-static int _circle3[7][2] = {{-1,2},{-2,3},{-3,4},{-3,4},{-3,4},{-2,3},{-1,2}};
-static int _circle4[9][2] = {{-1,2},{-3,4},{-3,4},{-4,5},{-4,5},
-			     {-4,5},{-3,4},{-3,4},{-1,2}};
+static int32_t _circle0[1][2] = {{0,1}};
+static int32_t _circle1[3][2] = {{0,1},{-1,2},{0,1}};
+static int32_t _circle2[5][2] = {{-1,2},{-2,3},{-2,3},{-2,3},{-1,2}};
+static int32_t _circle3[7][2] = {{-1,2},{-2,3},{-3,4},{-3,4},
+				 {-3,4},{-2,3},{-1,2}};
+static int32_t _circle4[9][2] = {{-1,2},{-3,4},{-3,4},{-4,5},{-4,5},
+				 {-4,5},{-3,4},{-3,4},{-1,2}};
 
-static int* _pre_drawn_circle[5] = {
-	(int*)_circle0,
-	(int*)_circle1,
-	(int*)_circle2,
-	(int*)_circle3,
-	(int*)_circle4
+static int32_t* _pre_drawn_circle[5] = {
+	(int32_t*)_circle0,
+	(int32_t*)_circle1,
+	(int32_t*)_circle2,
+	(int32_t*)_circle3,
+	(int32_t*)_circle4
 };
 
 
@@ -176,11 +177,11 @@ static int* _pre_drawn_circle[5] = {
 
 /* 'thick' is 'radius'!! */
 static void
-_draw_line(int* pixels, int w, int h,
-	   int color, int thick,
-	   int x0, int y0, int x1, int y1) {
-	int	tmp;
-	char	steep;
+_draw_line(int32_t* pixels, int32_t w, int32_t h,
+	   int32_t color, int32_t thick,
+	   int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
+	int32_t	tmp;
+	int8_t  steep;
 
 	steep = ABS(y1 - y0) > ABS(x1 - x0);
 	/* Check trivial case. */
@@ -213,18 +214,18 @@ _draw_line(int* pixels, int w, int h,
 				pixels[i * w + j] = color;		\
 		}
 
-		int* pdc = _pre_drawn_circle[thick];
-		int deltax = x1 - x0;
-		int deltay = ABS(y1 - y0);
+		int32_t* pdc = _pre_drawn_circle[thick];
+		int32_t deltax = x1 - x0;
+		int32_t deltay = ABS(y1 - y0);
 		/*
 		 * original error = -(deltax + 1)/2.
 		 * Buf for integer operation only...
 		 */
-		int error = -(deltax + 1);
-		int ystep;
-		int y = y0;
-		int x, ys, ye, xs, xe;
-		register int i, j;
+		int32_t error = -(deltax + 1);
+		int32_t ystep;
+		int32_t y = y0;
+		int32_t x, ys, ye, xs, xe;
+		register int32_t i, j;
 
 		if (y0 < y1)
 			ystep = 1;
@@ -265,9 +266,9 @@ _draw_line(int* pixels, int w, int h,
 }
 
 void
-draw_line(int* pixels, int w, int h,
-	  int color, char thick,
-	  int x0, int y0, int x1, int y1) {
+draw_line(int32_t* pixels, int32_t w, int32_t h,
+	  int32_t color, uint8_t thick,
+	  int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
 	_draw_line(pixels, w, h, color, thick, x0, y0, x1, y1);
 }
 

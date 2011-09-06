@@ -18,51 +18,28 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
+#ifndef _AHASh_h_
+#define _AHASh_h_
 
-#ifndef _GTYPe_h_
-#define _GTYPe_h_
-
+#include <stdbool.h>
 #include <stdint.h>
-#include "list.h"
 
-/*
- * Top two priority!!!
- *     Saving memory! Increasing speed!
- *     (Number of lines can be reachs to 1,000,000!! We should consider this!)
- */
+struct ahash*
+ahash_create(void);
 
-struct rect {
-	int32_t l, t, r, b;
-};
+void
+ahash_destroy(struct ahash* h);
 
-struct div {
-	struct list_link   lns;  /* lines */
-	struct list_link   objs; /* objects */
-	struct rect        boundary;
-};
+uint32_t
+ahash_sz(struct ahash* h);
 
-/*
- * x-sorted. That is, (x0 <= x1) should be alwasy true!.
- */
-struct line {
-	uint16_t    x0, y0, x1, y1;
-	uint16_t    color; /* 16bit color */
-	uint8_t	    alpha; /* alpha value of color (not used yet) */
-	uint8_t	    thick; /* 1~255 is enough! */
+struct ahash*
+ahash_add(struct ahash* h, void* p);
 
-	struct div*         div;
-	struct list_link*   divlk;
-};
+struct ahash*
+ahash_del(struct yahash* h, void* p);
 
-struct node {
-	struct line*       ln;
-	struct list_link   lk;
-};
+bool
+ahash_check(struct yahash* h, void* p);
 
-struct wsheet {
-	int32_t	     divW, divH, colN, rowN;
-	struct div** divs; /* divs[row][col] */
-};
-
-
-#endif /* _GTYPe_h_ */
+#endif /* _AHASh_h_ */

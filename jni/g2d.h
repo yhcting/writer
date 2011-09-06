@@ -21,25 +21,30 @@
 #ifndef _G2d_h_
 #define _G2d_h_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "gtype.h"
 
-int
-g2d_splitX(int* out_intersecty,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int x,
-	   int yt, int yb);
+bool
+g2d_splitX(int32_t* out_intersecty,
+	   int32_t x0, int32_t y0,
+	   int32_t x1, int32_t y1,
+	   int32_t x,
+	   int32_t yt, int32_t yb);
 
-int
-g2d_splitY(int* out_intersectx,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int y,
-	   int xl, int xr);
+bool
+g2d_splitY(int32_t* out_intersectx,
+	   int32_t x0, int32_t y0,
+	   int32_t x1, int32_t y1,
+	   int32_t y,
+	   int32_t xl, int32_t xr);
 
 
-static inline int
-splitX(int* out_intersecty, struct line* ln, int x, int yt, int yb) {
+static inline bool
+splitX(int32_t* out_intersecty,
+       struct line* ln,
+       int32_t x, int32_t yt, int32_t yb) {
 	return g2d_splitX(out_intersecty,
 			  ln->x0, ln->y0,
 			  ln->x1, ln->y1,
@@ -47,8 +52,10 @@ splitX(int* out_intersecty, struct line* ln, int x, int yt, int yb) {
 			  yt, yb);
 }
 
-static inline int
-splitY(int* out_intersectx, struct line* ln, int y, int xl, int xr) {
+static inline bool
+splitY(int32_t* out_intersectx,
+       struct line* ln,
+       int32_t y, int32_t xl, int32_t xr) {
 	return g2d_splitY(out_intersectx,
 			  ln->x0, ln->y0,
 			  ln->x1, ln->y1,
@@ -62,8 +69,8 @@ splitY(int* out_intersectx, struct line* ln, int y, int xl, int xr) {
  ********************************/
 static inline void
 line_set(struct line* ln,
-	  unsigned short x0, unsigned short y0,
-	  unsigned short x1, unsigned short y1) {
+	  uint16_t x0, uint16_t y0,
+	  uint16_t x1, uint16_t y1) {
 	if (x0 <= x1) {
 		ln->x0 = x0;
 		ln->y0 = y0;
@@ -93,18 +100,19 @@ line_boundary(const struct line* ln, struct rect* out) {
 /********************************
  * Functions for rect
  ********************************/
-static inline int
+static inline int32_t
 rect_is_empty(const struct rect* r) {
 	return r->l >= r->r || r->t >= r->b;
 }
 
-static inline int
-rect_contains(const struct rect* r, int x, int y) {
+static inline int32_t
+rect_contains(const struct rect* r, int32_t x, int32_t y) {
 	return (x >= r->l && x < r->r && y >= r->t && y < r->b);
 }
 
 static inline void
-rect_set(struct rect* pr, int l, int t, int r, int b) {
+rect_set(struct rect* pr,
+	 int32_t l, int32_t t, int32_t r, int32_t b) {
 	pr->l = l;
 	pr->t = t;
 	pr->r = r;

@@ -29,7 +29,7 @@
 
 static int
 _test_g2d(void) {
-	int out;
+	int32_t out;
 
 	wassert(0 == g2d_splitX(&out, 1, 1, 5, 1, 1, 0, 5));
 	wassert(0 == g2d_splitX(&out, 1, 1, 5, 1, 5, 0, 5));

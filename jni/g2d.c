@@ -19,47 +19,51 @@
  *****************************************************************************/
 
 #include "config.h"
-#include "common.h"
 
-int
-g2d_splitX(int* out_intersecty,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int x,
-	   int yt, int yb) {
+#include "common.h"
+#include "g2d.h"
+
+bool
+g2d_splitX(int32_t* out_intersecty,
+	   int32_t x0, int32_t y0,
+	   int32_t x1, int32_t y1,
+	   int32_t x,
+	   int32_t yt, int32_t yb) {
 	if (x0 == x1)
-		return 0;
+		return false;
 	else {
 		float s = (float)(x - x0) / (float)(x1 - x0);
 		if (0 < s && s < 1) {
-			int y = _round_off(s * (float)(y1 - y0) + (float)y0);
+			int32_t y =
+				_round_off(s * (float)(y1 - y0) + (float)y0);
 			if (yt >= y || y >= yb)
 				return 0;
 			*out_intersecty=y;
-			return 1;
+			return true;
 		} else
-			return 0;
+			return false;
 	}
 }
 
 
-int
-g2d_splitY(int* out_intersectx,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int y,
-	   int xl, int xr) {
+bool
+g2d_splitY(int32_t* out_intersectx,
+	   int32_t x0, int32_t y0,
+	   int32_t x1, int32_t y1,
+	   int32_t y,
+	   int32_t xl, int32_t xr) {
 	if (y0 == y1)
-		return 0;
+		return false;
 	else {
 		float s = (float)(y - y0) / (float)(y1 - y0);
 		if (0 < s && s < 1) {
-			int x = _round_off(s * (float)(x1 - x0) + (float)x0);
+			int32_t x =
+				_round_off(s * (float)(x1 - x0) + (float)x0);
 			if (xl >= x || x >= xr)
 				return 0;
 			*out_intersectx = x;
-			return 1;
+			return true;
 		} else
-			return 0;
+			return false;
 	}
 }

@@ -23,6 +23,8 @@
 
 #ifdef CONFIG_MEMPOOL
 
+#include <stdint.h>
+
 /****************
  * NOTE!
  *    Memory pool should be multi-thread-safe!!!
@@ -41,7 +43,7 @@ struct mp;
  * elemsz : element size (in bytes)
  */
 struct mp*
-mp_create(int elem_nr, int elem_sz);
+mp_create(uint32_t elem_nr, uint32_t elem_sz);
 
 void
 mp_destroy(struct mp*);
@@ -59,9 +61,9 @@ void
 mp_put(struct mp*, void* block);
 
 /*
- * return number of element size
+ * return number of element
  */
-int
+uint32_t
 mp_sz(struct mp*);
 
 #endif /* CONFIG_MEMPOOL */

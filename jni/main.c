@@ -39,22 +39,22 @@
  * tpf : Time PerFormance
  */
 static struct _tpf {
-	unsigned long long tmp; /* tmp for start time */
-	unsigned long long t;   /* average time */
-	unsigned int       cnt; /* measure count */
+	uint64_t tmp; /* tmp for start time */
+	uint64_t t;   /* average time */
+	uint32_t cnt; /* measure count */
 } _tpfs[DBG_PERF_NR];
 
-static unsigned long long
+static uint64_t
 _utime(void) {
 	struct timeval tv;
 	if (gettimeofday(&tv, NULL))
 		assert(0);
-	return (unsigned long long)(tv.tv_sec * 1000000)
-		+ (unsigned long long)tv.tv_usec;
+	return (uint64_t)(tv.tv_sec * 1000000)
+		+ (uint64_t)tv.tv_usec;
 }
 
 void
-dbg_tpf_check_start(int cat) {
+dbg_tpf_check_start(uint32_t cat) {
 	_tpfs[cat].tmp = _utime();
 }
 
@@ -63,16 +63,16 @@ dbg_tpf_check_start(int cat) {
  *     : Be careful to avoid 'overflow'!
  */
 void
-dbg_tpf_check_end(int cat) {
-	unsigned long long t = _utime();
-	struct _tpf*       p = &_tpfs[cat];
+dbg_tpf_check_end(uint32_t cat) {
+	uint64_t     t = _utime();
+	struct _tpf* p = &_tpfs[cat];
 	/*p->t = (t - p->tmp) / (p->cnt + 1) + p->cnt / (p->cnt + 1) * p->t;*/
 	p->t = (p->t * p->cnt + (t - p->tmp)) / (p->cnt + 1);
 	p->cnt++;
 }
 
 void
-dbg_tpf_print(int cat) {
+dbg_tpf_print(uint32_t cat) {
 	char    msg[1024];
 	sprintf(msg, "%lld : %d\n", _tpfs[cat].t, _tpfs[cat].cnt);
 #ifdef CONFIG_TEST_EXECUTABLE
@@ -84,7 +84,7 @@ dbg_tpf_print(int cat) {
 
 void
 dbg_tpf_init() {
-	int i;
+	uint32_t i;
 	for (i = 0; i < DBG_PERF_NR; i++) {
 		_tpfs[i].t = 0;
 		_tpfs[i].cnt = 0;
@@ -105,17 +105,17 @@ dbg_tpf_init() {
 #include "wsheet.h"
 
 struct _tstfn {
-	int             (*fn)(void);
+	int32_t         (*fn)(void);
 	const char*       modname;
 	struct list_link  lk;
 };
 
 static list_decl_head(_tstfnl);
-static int _memblk = 0;
+static int32_t _memblk = 0;
 
 
 void
-wregister_tstfn(int (*fn)(void), const char* mod) {
+wregister_tstfn(int32_t (*fn)(void), const char* mod) {
 	/* malloc should be used instead of wmalloc */
 	struct _tstfn* n = malloc(sizeof(*n));
 	n->fn = fn;
@@ -124,7 +124,7 @@ wregister_tstfn(int (*fn)(void), const char* mod) {
 }
 
 void*
-wmalloc(unsigned int sz) {
+wmalloc(uint32_t sz) {
 	_memblk++;
 	return malloc(sz);
 }
@@ -135,7 +135,7 @@ wfree(void* p) {
 	free(p);
 }
 
-int
+int32_t
 wmblkcnt(void) {
 	return _memblk;
 }
@@ -144,7 +144,7 @@ wmblkcnt(void) {
 int
 main()
 {
-	int               sv, compen;
+	int32_t           sv, compen;
 	struct _tstfn*    p;
 
 	list_foreach_item(p, &_tstfnl, struct _tstfn, lk) {

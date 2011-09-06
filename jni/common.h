@@ -21,26 +21,31 @@
 #ifndef _COMMOn_H_
 #define _COMMOn_H_
 
+#include <stdint.h>
+
 #ifndef offset_of
-#       define offset_of(type, member) ((unsigned long) &((type*)0)->member)
+#       define offset_of(type, member) ((uintptr_t) &((type*)0)->member)
 #endif
 
 #ifndef container_of
 #       define container_of(ptr, type, member)			\
-	((type*)(((char*)(ptr)) - offset_of(type, member)))
+	((type*)(((int8_t*)(ptr)) - offset_of(type, member)))
 #endif
 
+#ifndef NULL
+#       define NULL ((void*)0)
+#endif
 
 #ifdef CONFIG_TEST_EXECUTABLE
 
 #include <assert.h>
 
 #define wassert(x)  assert(x)
-void* wmalloc(unsigned int);
+void* wmalloc(uint32_t);
 void  wfree(void*);
 
 /* return nr of memory block assigned by wmalloc - not freed*/
-int wmblkcnt(void);
+int32_t wmblkcnt(void);
 
 /*
  * returned value of '(*fn)(void)' is memory count compensation.
@@ -49,7 +54,7 @@ int wmblkcnt(void);
  *  But, test FW is unhappy with it.
  *  So, test func. should notify this compensation to FW. with return value.
  */
-void wregister_tstfn(int (*fn)(void), const char* mod);
+void wregister_tstfn(int32_t (*fn)(void), const char* mod);
 
 #define TESTFN(fn, mod)							\
 	static void __tst_##fn(void) __attribute__ ((constructor));	\
@@ -100,8 +105,8 @@ void wregister_tstfn(int (*fn)(void), const char* mod);
 #define MIN(x,y) (((x) < (y))? x: y)
 #define MAX(x,y) (((x) < (y))? y: x)
 
-static inline int _round_off(float x) {
-	return (x > 0)? (int)(x + .5f): (int)(x - .5f);
+static inline int32_t _round_off(float x) {
+	return (x > 0)? (int32_t)(x + .5f): (int32_t)(x - .5f);
 }
 
 #ifdef CONFIG_DBG_STATISTICS
@@ -115,13 +120,13 @@ enum {
 };
 
 void
-dbg_tpf_check_start(int cat);
+dbg_tpf_check_start(uint32_t cat);
 
 void
-dbg_tpf_check_end(int cat);
+dbg_tpf_check_end(uint32_t cat);
 
 void
-dbg_tpf_print(int cat);
+dbg_tpf_print(uint32_t cat);
 
 void
 dbg_tpf_init(void);

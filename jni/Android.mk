@@ -11,6 +11,7 @@ LOCAL_SRC_FILES := \
 	g2d.c \
 	wsheet.c \
 	mempool.c \
+	ahash.c \
 	main.c
 
 LOCAL_LDLIBS := -lc -llog

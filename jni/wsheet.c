@@ -38,7 +38,7 @@
 /*
  * Flag to check that this wsheet static values are initialized or not
  */
-static int _initialized = 0;
+static bool _initialized = false;
 
 #ifdef CONFIG_MEMPOOL
 struct mp* g_wsheet_nmp = NULL; /* node memory pool */
@@ -47,7 +47,7 @@ struct mp* g_wsheet_nmp = NULL; /* node memory pool */
 static void
 _init(void) {
 	wassert(!_initialized);
-	_initialized = 1;
+	_initialized = true;
 
 	nmp_create(256 * 1024);
 }
@@ -57,7 +57,7 @@ static void
 _deinit(void) {
 	if (!_initialized)
 		return;
-	_initialized = 0;
+	_initialized = false;
 
 	nmp_destroy();
 }
@@ -85,7 +85,7 @@ _wsheet_div(struct wsheet* wsh, struct line* ln) {
 	 *   and we include point on the line...
 	 * That's why we should consider only smaller value!
 	 */
-	int c, r;
+	int32_t c, r;
 	c = ln->x0 / wsh->divW;
 	if (ln->y0 < ln->y1)
 		r = ln->y0 / wsh->divH;
@@ -94,18 +94,18 @@ _wsheet_div(struct wsheet* wsh, struct line* ln) {
 	return &wsh->divs[r][c];
 }
 
-static inline int
+static inline bool
 _wsheet_splitX(struct wsheet* wsh,
-	       int* out_intersecty,
-	       struct line* ln, int x) {
+	       int32_t* out_intersecty,
+	       struct line* ln, int32_t x) {
 	return splitX(out_intersecty, ln, x, 0, wsh->divH * wsh->rowN);
 }
 
 
-static inline int
+static inline bool
 _wsheet_splitY(struct wsheet* wsh,
-	       int* out_intersectx,
-	       struct line* ln, int y) {
+	       int32_t* out_intersectx,
+	       struct line* ln, int32_t y) {
 	return splitY(out_intersectx, ln, y, 0, wsh->divW * wsh->colN);
 }
 
@@ -119,8 +119,8 @@ _wsheet_splitY(struct wsheet* wsh,
  */
 static inline void
 _wsheet_find_lines_(struct wsheet* wsh, struct list_link* out,
-		    int ti, int bi, int li, int ri) {
-	int i, j;
+		    int32_t ti, int32_t bi, int32_t li, int32_t ri) {
+	int32_t i, j;
 	/* fully included division - we don't need to check. */
 	for (i = ti; i < bi; i++)
 		for (j = li; j < ri; j++)
@@ -132,7 +132,7 @@ _wsheet_find_lines_(struct wsheet* wsh, struct list_link* out,
 struct _wsheet_find_lines_arg {
 	struct wsheet*     wsh;
 	struct list_link*  out;
-	int                ti, bi, li, ri;
+	int32_t            ti, bi, li, ri;
 };
 
 static void*
@@ -157,7 +157,7 @@ _wsheet_find_lines_worker(void* arg) {
  */
 void
 wsheet_find_lines(struct wsheet* wsh, struct list_link* out,
-		  int l, int t, int r, int b) {
+		  int32_t l, int32_t t, int32_t r, int32_t b) {
 
 #define __horizontal_strip()						\
 	do {								\
@@ -188,15 +188,15 @@ wsheet_find_lines(struct wsheet* wsh, struct list_link* out,
 	} while (0)
 
 
-	int i;
+	int32_t i;
 	/* left index */
-	int li = l / wsh->divW;
+	int32_t li = l / wsh->divW;
 	/* top index */
-	int ti = t / wsh->divH;
+	int32_t ti = t / wsh->divH;
 	/* right index (exclude right line); */
-	int ri = (0 == r % wsh->divW)? r / wsh->divW - 1: r / wsh->divW;
+	int32_t ri = (0 == r % wsh->divW)? r / wsh->divW - 1: r / wsh->divW;
 	/* bottom index (exclude bottom line); */
-	int bi = (0 == b % wsh->divH)? b / wsh->divH - 1: b / wsh->divH;
+	int32_t bi = (0 == b % wsh->divH)? b / wsh->divH - 1: b / wsh->divH;
 
 	if (r <= l || b <= t)
 		return; /* empty rectangle.. nothing to do... */
@@ -261,16 +261,16 @@ wsheet_find_lines(struct wsheet* wsh, struct list_link* out,
 struct _draw_arg {
 	struct list_link* head;
 	struct list_link* lk;
-	int*              pixels;
-	int               w, h, ox, oy;
+	int32_t*          pixels;
+	int32_t           w, h, ox, oy;
 	float             zf;
 };
 
 static void
 _draw_(struct list_link* head,
        struct list_link* lk,
-       int* pixels,
-       int w, int h, int ox, int oy,
+       int32_t* pixels,
+       int32_t w, int32_t h, int32_t ox, int32_t oy,
        float zf) {
 	struct line* ln;
 
@@ -326,8 +326,8 @@ wsheet_create(void) {
 }
 
 void
-wsheet_init(struct wsheet* wsh, int divW, int divH, int colN, int rowN) {
-	int i, j;
+wsheet_init(struct wsheet* wsh, int32_t divW, int32_t divH, int32_t colN, int32_t rowN) {
+	int32_t i, j;
 
 	wsh->divW = divW;
 	wsh->divH = divH;
@@ -348,7 +348,7 @@ wsheet_init(struct wsheet* wsh, int divW, int divH, int colN, int rowN) {
 
 void
 wsheet_destroy(struct wsheet* wsh) {
-	int i,j;
+	int32_t i,j;
 	for (i = 0; i < wsh->rowN; i++) {
 		for (j = 0; j < wsh->colN; j++)
 			div_clean(&wsh->divs[i][j]);
@@ -359,12 +359,12 @@ wsheet_destroy(struct wsheet* wsh) {
 }
 
 void
-wsheet_cutout(struct wsheet* wsh, int l, int t, int r, int b) {
+wsheet_cutout(struct wsheet* wsh, int32_t l, int32_t t, int32_t r, int32_t b) {
 	struct list_link   lns;
 	struct line*       oln; /* original line */
 	struct line*       ln;
 	struct line*       tmpl;
-	int                intersect;
+	int32_t            intersect;
 	struct node*       n;
 
 	list_init_link(&lns);
@@ -432,18 +432,18 @@ wsheet_cutout(struct wsheet* wsh, int l, int t, int r, int b) {
 
 void
 wsheet_add(struct wsheet* wsh,
-	   int x0, int y0,
-	   int x1, int y1,
-	   char thick,
-	   unsigned short color) {
+	   int32_t x0, int32_t y0,
+	   int32_t x1, int32_t y1,
+	   uint8_t thick,
+	   uint16_t color) {
 
 	struct list_link   list;
 	struct list_link   splits;
 	struct node*       n;
 	struct line*       l;
 	struct line*       tmpl;
-	int	           v, intersect, i;
-	int                vmin, vmax; /* value min/max */
+	int32_t	           v, intersect, i;
+	int32_t            vmin, vmax; /* value min/max */
 
 	list_init_link(&list);
 	list_init_link(&splits);
@@ -522,10 +522,10 @@ wsheet_add(struct wsheet* wsh,
 
 void
 wsheet_draw(struct wsheet* wsh,
-	    int* pixels,
-	    int w, int h,
-	    int ox, int oy,
-	    int l, int t, int r, int b,
+	    int32_t* pixels,
+	    int32_t w, int32_t h,
+	    int32_t ox, int32_t oy,
+	    int32_t l, int32_t t, int32_t r, int32_t b,
 	    float zf) {
 	struct list_link   lns;
 
