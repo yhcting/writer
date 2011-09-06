@@ -18,48 +18,32 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-#include "config.h"
-#include "common.h"
+#ifndef _D2d_h_
+#define _D2d_h_
 
-int
-g2d_splitX(int* out_intersecty,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int x,
-	   int yt, int yb) {
-	if (x0 == x1)
-		return 0;
-	else {
-		float s = (float)(x - x0) / (float)(x1 - x0);
-		if (0 < s && s < 1) {
-			int y = _round_off(s * (float)(y1 - y0) + (float)y0);
-			if (yt >= y || y >= yb)
-				return 0;
-			*out_intersecty=y;
-			return 1;
-		} else
-			return 0;
-	}
+void
+copy_rect(int* dst, const int* src,
+	  int dw, int dh, int dl, int dt,
+	  int sw, int sh, int sl, int st,
+	  int width, int height);
+
+void
+fill_rect(int* pixels, int w, int h,
+	  int color,
+	  int l, int t, int r, int b);
+
+void
+draw_line(int* pixels, int w, int h,
+	  int color, char thick,
+	  int x0, int y0, int x1, int y1);
+
+
+static inline int
+_rbg16to32(short color) {
+	return 0xff000000
+		| ((color & 0xf800) << 8)
+		| ((color & 0x07e0) << 5)
+		| ((color & 0x001f) << 3);
 }
 
-
-int
-g2d_splitY(int* out_intersectx,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int y,
-	   int xl, int xr) {
-	if (y0 == y1)
-		return 0;
-	else {
-		float s = (float)(y - y0) / (float)(y1 - y0);
-		if (0 < s && s < 1) {
-			int x = _round_off(s * (float)(x1 - x0) + (float)x0);
-			if (xl >= x || x >= xr)
-				return 0;
-			*out_intersectx = x;
-			return 1;
-		} else
-			return 0;
-	}
-}
+#endif /* _D2d_h_ */

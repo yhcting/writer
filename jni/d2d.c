@@ -18,6 +18,8 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -83,10 +85,10 @@ _fill_rect_worker(void* arg) {
 #endif /* defined(CONFIG_DUALCORE) && !defined(CONFIG_ARCH_ARM) */
 
 
-static void
-_fill_rect(int* pixels, int w, int h,
-	   int color,
-	   int l, int t, int r, int b) {
+void
+fill_rect(int* pixels, int w, int h,
+	  int color,
+	  int l, int t, int r, int b) {
 
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_check_start(DBG_PERF_FILL_RECT);
@@ -127,11 +129,11 @@ _fill_rect(int* pixels, int w, int h,
 
 }
 
-static void
-_copy_rect(int* dst, const int* src,
-	   int dw, int dh, int dl, int dt,
-	   int sw, int sh, int sl, int st,
-	   int width, int height) {
+void
+copy_rect(int* dst, const int* src,
+	  int dw, int dh, int dl, int dt,
+	  int sw, int sh, int sl, int st,
+	  int width, int height) {
 	register const int* ss = src;
 	register int*	    ds = dst + dw * dt + dl;
 	register int	    s_gap = sw - width;
@@ -267,73 +269,5 @@ draw_line(int* pixels, int w, int h,
 	  int color, char thick,
 	  int x0, int y0, int x1, int y1) {
 	_draw_line(pixels, w, h, color, thick, x0, y0, x1, y1);
-}
-
-
-#include "jni.h"
-/*
- * NOTE !!!
- * If array is passed as copy..... performance can be great problem..!!!
- * (In Eclair, memory is pinned.!! - so Ok)
- */
-
-/*
- * Class:     com_yhc_writer_D2d
- * Method:    _nativeFill
- * Signature: ([IIIIIIII)V
- */
-JNIEXPORT void JNICALL
-Java_com_yhc_writer_D2d__1nativeFill(JNIEnv* env, jclass jclazz,
-				     jintArray jarr, jint w, jint h,
-				     jint color,
-				     jint l, jint t, jint r, jint b) {
-	jint* pixels = (*env)->GetIntArrayElements(env, jarr, NULL);
-
-	_fill_rect(pixels, w, h, color, l, t, r, b);
-
-	(*env)->ReleaseIntArrayElements(env, jarr, pixels, JNI_ABORT);
-}
-
-/*
- * Class:     com_yhc_writer_D2d
- * Method:    _nativeCopy
- * Signature: ([I[IIIIIIIIIII)V
-p */
-JNIEXPORT void JNICALL
-Java_com_yhc_writer_D2d__1nativeCopy(JNIEnv* env, jclass jclazz,
-				     jintArray jarr_dst, jintArray jarr_src,
-				     jint dw, jint dh, jint dl, jint dt,
-				     jint sw, jint sh, jint sl, jint st,
-				     jint width, jint height) {
-	jint* dst_pixels = (*env)->GetIntArrayElements(env, jarr_dst, NULL);
-	jint* src_pixels = (*env)->GetIntArrayElements(env, jarr_src, NULL);
-
-	_copy_rect(dst_pixels, src_pixels,
-		   dw, dh, dl, dt,
-		   sw, sh, sl, st,
-		   width, height);
-
-	(*env)->ReleaseIntArrayElements(env, jarr_dst, dst_pixels, JNI_ABORT);
-	(*env)->ReleaseIntArrayElements(env, jarr_src, src_pixels, JNI_ABORT);
-
-}
-
-/*
- * Class:     com_yhc_writer_D2d
- * Method:    _nativeDrawLine
- * Signature: ([IIIIBIIII)V
- */
-JNIEXPORT void JNICALL
-Java_com_yhc_writer_D2d__1nativeDrawLine(JNIEnv* env, jclass jclazz,
-					   jintArray jarr, jint w, jint h,
-					   jint color, jbyte thick,
-					   jint x0, jint y0,
-					   jint x1, jint y1) {
-	jint* pixels = (*env)->GetIntArrayElements(env, jarr, NULL);
-
-	draw_line(pixels, w, h, color, thick, x0, y0, x1, y1);
-
-	(*env)->ReleaseIntArrayElements(env, jarr, pixels, JNI_ABORT);
-
 }
 

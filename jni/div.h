@@ -18,48 +18,38 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-#include "config.h"
+#ifndef _DIv_h_
+#define _DIv_h_
+
 #include "common.h"
+#include "g2d.h"
+#include "listut.h"
 
-int
-g2d_splitX(int* out_intersecty,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int x,
-	   int yt, int yb) {
-	if (x0 == x1)
-		return 0;
-	else {
-		float s = (float)(x - x0) / (float)(x1 - x0);
-		if (0 < s && s < 1) {
-			int y = _round_off(s * (float)(y1 - y0) + (float)y0);
-			if (yt >= y || y >= yb)
-				return 0;
-			*out_intersecty=y;
-			return 1;
-		} else
-			return 0;
-	}
+void
+div_find_lines(struct div* div,
+	       struct list_link* out,
+	       int l, int t, int r, int b);
+
+static inline void
+div_init(struct div* div, int l, int t, int r, int b) {
+	list_init_link(&div->lns);
+	rect_set(&div->boundary, l, t, r, b);
 }
 
-
-int
-g2d_splitY(int* out_intersectx,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int y,
-	   int xl, int xr) {
-	if (y0 == y1)
-		return 0;
-	else {
-		float s = (float)(y - y0) / (float)(y1 - y0);
-		if (0 < s && s < 1) {
-			int x = _round_off(s * (float)(x1 - x0) + (float)x0);
-			if (xl >= x || x >= xr)
-				return 0;
-			*out_intersectx = x;
-			return 1;
-		} else
-			return 0;
+static inline void
+div_clean(struct div* div) {
+	struct node* n;
+	list_foreach_item(n, &div->lns, struct node, lk) {
+		wfree(n->ln);
 	}
+	wlist_clean(&div->lns);
 }
+
+static inline void
+div_add(struct div* div, struct line* ln) {
+	ln->div = div;
+	wlist_add_line(&div->lns, ln);
+	ln->divlk = div->lns._prev;
+}
+
+#endif /* _DIv_h_ */

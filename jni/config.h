@@ -55,6 +55,6 @@
  */
 #define CONFIG_MEMPOOL
 
-#define CONFIG_DBG_STATISTICS
+/* #define CONFIG_DBG_STATISTICS */
 
 #endif /* __CONFIg_h__ */

@@ -19,47 +19,46 @@
  *****************************************************************************/
 
 #include "config.h"
+
+#include <malloc.h>
+
 #include "common.h"
+#include "gtype.h"
+#include "g2d.h"
+#include "listut.h"
 
-int
-g2d_splitX(int* out_intersecty,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int x,
-	   int yt, int yb) {
-	if (x0 == x1)
-		return 0;
-	else {
-		float s = (float)(x - x0) / (float)(x1 - x0);
-		if (0 < s && s < 1) {
-			int y = _round_off(s * (float)(y1 - y0) + (float)y0);
-			if (yt >= y || y >= yb)
-				return 0;
-			*out_intersecty=y;
-			return 1;
-		} else
-			return 0;
-	}
-}
+/********************************
+ * Functions for div
+ ********************************/
+void
+div_find_lines(struct div* div,
+	       struct list_link* out,
+	       int l, int t, int r, int b) {
+	struct node*   n;
+	struct line*   ln;
+	struct rect    rect;
+	char	       b_intersected;
 
+	rect_set(&rect, l, t, r, b);
 
-int
-g2d_splitY(int* out_intersectx,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int y,
-	   int xl, int xr) {
-	if (y0 == y1)
-		return 0;
-	else {
-		float s = (float)(y - y0) / (float)(y1 - y0);
-		if (0 < s && s < 1) {
-			int x = _round_off(s * (float)(x1 - x0) + (float)x0);
-			if (xl >= x || x >= xr)
-				return 0;
-			*out_intersectx = x;
-			return 1;
-		} else
-			return 0;
+	list_foreach_item(n, &div->lns, struct node, lk) {
+		ln = n->ln;
+		b_intersected = 0;
+		/* Check that line is expands on this rectangle region. */
+		if (rect_contains(&rect, ln->x0, ln->y0)
+		     || rect_contains(&rect, ln->x1, ln->y1)) {
+			/* trivial case! */
+			b_intersected = 1;
+		} else {
+			int intersect;;
+			if (splitX(&intersect, ln, l, t, b)
+			    || splitX(&intersect, ln, r, t, b)
+			    || splitY(&intersect, ln, t, l, r)
+			    || splitY(&intersect, ln, b, l, r)) {
+				b_intersected = 1;
+			}
+		}
+		if (b_intersected)
+			wlist_add_line(out, ln);
 	}
 }

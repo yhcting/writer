@@ -20,6 +20,9 @@
 
 #ifndef __LISt_h__
 #define __LISt_h__
+
+#define list_decl_head(hd) struct list_link hd = {&hd, &hd}
+
 /**
  * If possible DO NOT access struct directly!.
  */
@@ -85,6 +88,21 @@ list_replace(struct list_link* old, struct list_link* anew) {
 	anew->_next->_prev = anew;
 	anew->_prev = old->_prev;
 	anew->_prev->_next = anew;
+}
+
+static inline void
+list_absorb(struct list_link* head, struct list_link* in) {
+	/* absorb 'in' */
+
+	/* if list size > 0 */
+	if (in->_next != in) {
+		head->_prev->_next = in->_next;
+		in->_next->_prev = head->_prev;
+		head->_prev = in->_prev;
+		head->_prev->_next = head;
+	}
+	/* make absorbed list be empty */
+	list_init_link(in);
 }
 
 /**

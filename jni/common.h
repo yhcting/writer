@@ -18,8 +18,6 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-#include "config.h"
-
 #ifndef _COMMOn_H_
 #define _COMMOn_H_
 
@@ -37,35 +35,37 @@
 
 #include <assert.h>
 
-extern int g_used_memblk;
+#define wassert(x)  assert(x)
+void* wmalloc(unsigned int);
+void  wfree(void*);
 
-#   define ASSERT(x) assert(x)
+/* return nr of memory block assigned by wmalloc - not freed*/
+int wmblkcnt(void);
 
-#   define MALLOC(pTR, tYPE, sIZE)		\
-	do {					\
-		(pTR) = (tYPE)malloc(sIZE);	\
-		g_used_memblk++;		\
-	} while(0);
+/*
+ * returned value of '(*fn)(void)' is memory count compensation.
+ * Ex.
+ *  Test function may want to keep some memory block alive.
+ *  But, test FW is unhappy with it.
+ *  So, test func. should notify this compensation to FW. with return value.
+ */
+void wregister_tstfn(int (*fn)(void), const char* mod);
 
-#   define FREE(pTR)				\
-	do {					\
-		free(pTR);			\
-		g_used_memblk--;		\
-	} while(0);
+#define TESTFN(fn, mod)							\
+	static void __tst_##fn(void) __attribute__ ((constructor));	\
+	static void __tst_##fn(void) {					\
+		wregister_tstfn(&fn, #mod);				\
+	}
 
 #else /* CONFIG_TEST_EXECUTABLE */
 
-#   define ASSERT(x)
+#include <malloc.h>
 
-#   define MALLOC(pTR, tYPE, sIZE)		\
-	do {					\
-		(pTR) = (tYPE)malloc(sIZE);	\
-	} while(0);
+#define wassert(x)
+#define wmalloc(x) malloc(x)
+#define wfree(x)   free(x)
 
-#   define FREE(pTR)				\
-	do {					\
-		free(pTR);			\
-	} while(0);
+#define TESTFN(fn, mod)
 
 #endif /* CONFIG_TEST_EXECUTABLE */
 
@@ -100,8 +100,6 @@ extern int g_used_memblk;
 #define MIN(x,y) (((x) < (y))? x: y)
 #define MAX(x,y) (((x) < (y))? y: x)
 
-
-
 static inline int _round_off(float x) {
 	return (x > 0)? (int)(x + .5f): (int)(x - .5f);
 }
@@ -129,51 +127,5 @@ void
 dbg_tpf_init(void);
 
 #endif /* CONFIG_DBG_STATISTICS */
-
-#ifdef CONFIG_MEMPOOL
-
-/****************
- * NOTE!
- *    Memory pool should be multi-thread-safe!!!
- *    (mp_create / mp_destroy are not MT safe!)
- ****************/
-
-/*
- * mp : Memory Pool
- */
-struct mp;
-
-/*
- * size of pool will be expanded if needed.
- * this is just 'initial' size
- * grpsz  : memory block gropu size (number of element)
- * elemsz : element size (in bytes)
- */
-struct mp*
-mp_create(int elem_nr, int elem_sz);
-
-void
-mp_destroy(struct mp*);
-
-/*
- * get one block from pool.
- */
-void*
-mp_get(struct mp*);
-
-/*
- * return block to pool.
- */
-void
-mp_put(struct mp*, void* block);
-
-/*
- * return number of element size
- */
-int
-mp_sz(struct mp*);
-
-
-#endif /* CONFIG_MEMPOOL */
 
 #endif /* _COMMOn_H_ */

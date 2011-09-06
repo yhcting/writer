@@ -18,7 +18,7 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-#include "common.h"
+#include "config.h"
 
 
 #ifdef CONFIG_DBG_STATISTICS
@@ -31,6 +31,10 @@
 #ifndef CONFIG_TEST_EXECUTABLE
 #	include <android/log.h>
 #endif /* CONFIG_TEST_EXECUTABLE */
+
+#include "common.h"
+#include "wsheet.h"
+
 /*
  * tpf : Time PerFormance
  */
@@ -94,27 +98,80 @@ dbg_tpf_init() {
 #ifdef CONFIG_TEST_EXECUTABLE
 
 #include <stdio.h>
+#include <malloc.h>
 #include <assert.h>
 
-int g_used_memblk = 0;
+#include "list.h"
+#include "wsheet.h"
 
-extern void test_wsheet();
-extern void test_g2d();
+struct _tstfn {
+	int             (*fn)(void);
+	const char*       modname;
+	struct list_link  lk;
+};
+
+static list_decl_head(_tstfnl);
+static int _memblk = 0;
+
+
+void
+wregister_tstfn(int (*fn)(void), const char* mod) {
+	/* malloc should be used instead of wmalloc */
+	struct _tstfn* n = malloc(sizeof(*n));
+	n->fn = fn;
+	n->modname = mod;
+	list_add_last(&_tstfnl, &n->lk);
+}
+
+void*
+wmalloc(unsigned int sz) {
+	_memblk++;
+	return malloc(sz);
+}
+
+void
+wfree(void* p) {
+	_memblk--;
+	free(p);
+}
+
+int
+wmblkcnt(void) {
+	return _memblk;
+}
+
 
 int
 main()
 {
-	test_wsheet();
-	test_g2d();
+	int               sv, compen;
+	struct _tstfn*    p;
 
-	ASSERT(0 == g_used_memblk);
+	list_foreach_item(p, &_tstfnl, struct _tstfn, lk) {
+		printf("<< Test [%s] >>\n", p->modname);
+		sv = wmblkcnt();
+		compen = (*p->fn)();
+		if (sv + compen != wmblkcnt()) {
+			printf("Unbalanced memory at [%s]!\n"
+			       "    balance : %d\n",
+			       p->modname,
+			       wmblkcnt() - sv - compen);
+			wassert(0);
+		}
+		printf("<< PASSED [%s] >>\n", p->modname);
+	}
+
+	if (wmblkcnt())
+		printf("Unbalanced memory!\n"
+		       "    balance : %d\n",
+		       wmblkcnt());
 
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_print(DBG_PERF_FILL_RECT);
 	dbg_tpf_print(DBG_PERF_FIND_LINE);
 	dbg_tpf_print(DBG_PERF_DRAW_LINE);
 #endif /* CONFIG_DBG_STATISTICS */
-	printf("=== test success!!! ===\n");
+	printf("=== TEST SUCCESS!!! ===\n");
 	return 0;
 }
 #endif /* CONFIG_TEST_EXECUTABLE */

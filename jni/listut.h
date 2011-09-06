@@ -18,48 +18,40 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-#include "config.h"
+#ifndef _LISTUTIl_h_
+#define _LISTUTIl_h_
+
 #include "common.h"
 
-int
-g2d_splitX(int* out_intersecty,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int x,
-	   int yt, int yb) {
-	if (x0 == x1)
-		return 0;
-	else {
-		float s = (float)(x - x0) / (float)(x1 - x0);
-		if (0 < s && s < 1) {
-			int y = _round_off(s * (float)(y1 - y0) + (float)y0);
-			if (yt >= y || y >= yb)
-				return 0;
-			*out_intersecty=y;
-			return 1;
-		} else
-			return 0;
+#include "gtype.h"
+#include "list.h"
+#include "nmp.h"
+
+
+static inline void
+wlist_clean(struct list_link* head) {
+	struct node* n;
+	struct node* tmp;
+	list_foreach_item_removal_safe(n, tmp, head, struct node, lk) {
+		nmp_free(n);
+	}
+	list_init_link(head);
+}
+
+static void
+wlist_add_line(struct list_link* head, struct line* ln) {
+	struct node* n;
+	n = nmp_alloc();
+	n->ln = ln;
+	list_add_last(head, &n->lk);
+}
+
+static inline void
+wlist_add_list(struct list_link* head, const struct list_link* in) {
+	struct node* n;
+	list_foreach_item(n, in, struct node, lk) {
+		wlist_add_line(head, n->ln);
 	}
 }
 
-
-int
-g2d_splitY(int* out_intersectx,
-	   int x0, int y0,
-	   int x1, int y1,
-	   int y,
-	   int xl, int xr) {
-	if (y0 == y1)
-		return 0;
-	else {
-		float s = (float)(y - y0) / (float)(y1 - y0);
-		if (0 < s && s < 1) {
-			int x = _round_off(s * (float)(x1 - x0) + (float)x0);
-			if (xl >= x || x >= xr)
-				return 0;
-			*out_intersectx = x;
-			return 1;
-		} else
-			return 0;
-	}
-}
+#endif /* _LISTUTIl_h_ */

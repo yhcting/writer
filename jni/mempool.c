@@ -18,12 +18,14 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-#include "common.h"
+#include "config.h"
 
 #include <string.h>
 #include <malloc.h>
 #include <pthread.h>
 #include <stdio.h>
+
+#include "common.h"
 
 /*
  * fbp memory strip (FbpMS)
@@ -137,13 +139,13 @@ _init_lock(struct mp* mp) {
 static inline void
 _lock(struct mp* mp) {
 	if (pthread_mutex_lock(&mp->m))
-		ASSERT(0);
+		wassert(0);
 }
 
 static inline void
 _unlock(struct mp* mp) {
 	if (pthread_mutex_unlock(&mp->m))
-		ASSERT(0);
+		wassert(0);
 }
 
 static inline void
@@ -194,24 +196,20 @@ _expand(struct mp* mp) {
 	/* pre-calulate frequently used value */
 	blksz = _blksz(mp);
 
-	MALLOC(newgrp, unsigned char**,
-	       sizeof(*newgrp) * (mp->nrgrp + 1));
-	MALLOC(newfbp, struct _blk***,
-	       sizeof(*newfbp) * (mp->nrgrp + 1));
-	ASSERT(newgrp && newfbp);
+	newgrp = wmalloc(sizeof(*newgrp) * (mp->nrgrp + 1));
+	newfbp = wmalloc(sizeof(*newfbp) * (mp->nrgrp + 1));
+	wassert(newgrp && newfbp);
 
 	/* allocate new fbp group */
-	MALLOC(newfbp[mp->nrgrp], struct _blk**,
-	       sizeof(**newfbp) * mp->grpsz);
+	newfbp[mp->nrgrp] = wmalloc(sizeof(**newfbp) * mp->grpsz);
 	/* allocate new block group */
-	MALLOC(newgrp[mp->nrgrp], unsigned char*,
-	       sizeof(**newgrp) * mp->grpsz * blksz);
-	ASSERT(newfbp[mp->nrgrp] && newgrp[mp->nrgrp]);
+	newgrp[mp->nrgrp] = wmalloc(sizeof(**newgrp) * mp->grpsz * blksz);
+	wassert(newfbp[mp->nrgrp] && newgrp[mp->nrgrp]);
 
 	/* initialize fbp & block group */
 	for (i = 0; i < mp->grpsz; i++) {
 		newfbp[mp->nrgrp][i]
-			= (struct _blk*)newgrp[mp->nrgrp] + i * blksz;
+			= (struct _blk*)(newgrp[mp->nrgrp] + i * blksz);
 		newfbp[mp->nrgrp][i]->i = _sz(mp) + i;
 	}
 
@@ -220,8 +218,8 @@ _expand(struct mp* mp) {
 	memcpy(newfbp, mp->fbp, mp->nrgrp * sizeof(*newfbp));
 
 	/* update mp structure */
-	FREE(mp->grp);
-	FREE(mp->fbp);
+	wfree(mp->grp);
+	wfree(mp->fbp);
 	mp->grp = newgrp;
 	mp->fbp = newfbp;
 	mp->nrgrp++;
@@ -231,12 +229,12 @@ struct mp*
 mp_create(int grpsz, int elemsz) {
 	struct mp* mp;
 
-	ASSERT(grpsz > 0 && elemsz > 0);
-	MALLOC(mp, struct mp*, sizeof(*mp));
-	MALLOC(mp->grp, unsigned char**, sizeof(*mp->grp));
+	wassert(grpsz > 0 && elemsz > 0);
+	mp = wmalloc(sizeof(*mp));
+	mp->grp = wmalloc(sizeof(*mp->grp));
 	mp->grpsz = grpsz;
 	mp->nrgrp = 0;
-	MALLOC(mp->fbp, struct _blk***, sizeof(*mp->fbp));
+	mp->fbp = wmalloc(sizeof(*mp->fbp));
 	mp->esz = elemsz;
 	mp->fbi = 0;
 	_init_lock(mp);
@@ -251,11 +249,13 @@ void
 mp_destroy(struct mp* mp) {
 	int i;
 	_destroy_lock(mp);
-	FREE(mp->fbp);
-	for (i = 0; i < mp->nrgrp; i++)
-		FREE(mp->grp[i]);
-	FREE(mp->grp);
-	FREE(mp);
+	for (i = 0; i < mp->nrgrp; i++) {
+		wfree(mp->fbp[i]);
+		wfree(mp->grp[i]);
+	}
+	wfree(mp->fbp);
+	wfree(mp->grp);
+	wfree(mp);
 }
 
 /*
@@ -287,7 +287,7 @@ mp_put(struct mp* mp, void* block) {
 
 	b = container_of(block, struct _blk, d);
 	_lock(mp);
-	ASSERT(mp->fbi > 0);
+	wassert(mp->fbi > 0);
 	mp->fbi--;
 	ub = _blk(mp, mp->fbi);
 
