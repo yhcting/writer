@@ -267,7 +267,7 @@ _draw_line(int32_t* pixels, int32_t w, int32_t h,
 
 void
 draw_line(int32_t* pixels, int32_t w, int32_t h,
-	  int32_t color, uint8_t thick,
+	  int32_t color,  uint8_t thick,
 	  int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
 	_draw_line(pixels, w, h, color, thick, x0, y0, x1, y1);
 }

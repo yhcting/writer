@@ -27,12 +27,14 @@
  * Dualcore optimization test result on ARM
  *     FILL_RECT : optimized code is somewhat slower
  *     FIND_LINE : almost same
- *     DRAW_LINE : duualcore is faster effectively
+ *     DRAW_LINE : dualcore is faster effectively
  */
 #define CONFIG_ARCH_ARM
 
-/* Simple configuration for selective compile */
-/* #define CONFIG_TEST_EXECUTABLE */
+/*
+ * Code for unit test executable.
+ */
+#define CONFIG_TEST_EXECUTABLE
 
 /*
  * Optimization for dual-core
@@ -53,7 +55,7 @@
  * Real test shows that this makes improvement.
  * But, it's not dominant on performance.
  */
-#define CONFIG_MEMPOOL
+/* #define CONFIG_MEMPOOL */
 
 /* #define CONFIG_DBG_STATISTICS */
 

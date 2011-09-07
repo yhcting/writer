@@ -64,10 +64,10 @@ _hv(const struct ahash* h, const struct _hn* n) {
 /* Modify hash space to 'bits'*/
 static struct ahash*
 _hmodify(struct ahash* h, uint32_t bits) {
-	int		    i;
-	struct _hn	   *n, *tmp;
+	uint32_t            i;
+	struct _hn         *n, *tmp;
 	struct list_link*   oldmap;
-	uint32_t	    oldmapsz;
+	uint32_t            oldmapsz;
 
 	if (bits < _MIN_HBITS)
 		bits = _MIN_HBITS;
@@ -88,10 +88,10 @@ _hmodify(struct ahash* h, uint32_t bits) {
 	/* re assign hash nodes */
 	for (i=0; i<oldmapsz; i++) {
 		list_foreach_item_removal_safe(n,
-						 tmp,
-						 &oldmap[i],
-						 struct _hn,
-						 lk) {
+					       tmp,
+					       &oldmap[i],
+					       struct _hn,
+					       lk) {
 			list_del(&n->lk);
 			list_add_last(&h->map[_hv(h, n)], &n->lk);
 		}
@@ -128,8 +128,8 @@ _ndestroy(const struct ahash* h, struct _hn* n) {
 
 struct ahash*
 ahash_create(void) {
-	int	       i;
-	struct ahash* h = wmalloc(sizeof(*h));
+	uint32_t       i;
+	struct ahash*  h = wmalloc(sizeof(*h));
 	wassert(h);
 	h->sz = 0;
 	h->mapbits = _MIN_HBITS;
@@ -143,7 +143,7 @@ ahash_create(void) {
 
 void
 ahash_destroy(struct ahash* h) {
-	int	     i;
+	uint32_t     i;
 	struct _hn  *n, *tmp;
 	for (i=0; i<_hmapsz(h); i++) {
 		list_foreach_item_removal_safe(n,
