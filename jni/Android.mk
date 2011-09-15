@@ -10,6 +10,7 @@ LOCAL_SRC_FILES := \
 	div.c \
 	g2d.c \
 	wsheet.c \
+	wsheet_jni.c \
 	mempool.c \
 	ahash.c \
 	main.c

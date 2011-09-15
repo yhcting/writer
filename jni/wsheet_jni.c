@@ -31,103 +31,105 @@
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeCreateWsheet
- * Signature: ()I
+ * Signature: ()J
  */
-JNIEXPORT jint JNICALL
+JNIEXPORT jlong JNICALL
 Java_com_yhc_writer_WSheet__1nativeCreateWsheet(JNIEnv* env, jclass jclazz) {
-	return (jint)wsheet_create();
+	return ptr2jlong(wsheet_create());
 }
 
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeInitWsheet
- * Signature: (IIIII)I
+ * Signature: (JIIII)I
  */
 JNIEXPORT jint JNICALL
 Java_com_yhc_writer_WSheet__1nativeInitWsheet(JNIEnv* env, jclass jclazz,
-					      jint sheet,
+					      jlong sheet,
 					      jint divW, jint divH,
 					      jint colN, jint rowN) {
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_init();
 #endif /* CONFIG_DBG_STATISTICS */
 
-	wsheet_init((struct wsheet*)sheet, divW, divH, colN, rowN);
+	wsheet_init(jlong2ptr(sheet), divW, divH, colN, rowN);
 	return 1;
 }
 
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeDestroyWsheet
- * Signature: (I)V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL
 Java_com_yhc_writer_WSheet__1nativeDestroyWsheet(JNIEnv* env, jclass jclazz,
-						 jint sheet) {
-	wsheet_destroy((struct wsheet*)sheet);
+						 jlong sheet) {
+	wsheet_destroy(jlong2ptr(sheet));
 }
 
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeWidth
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL
 Java_com_yhc_writer_WSheet__1nativeWidth(JNIEnv* env, jclass jclazz,
-					 jint sheet) {
-	return ((struct wsheet*)sheet)->divW * ((struct wsheet*)sheet)->colN;
+					 jlong sheet) {
+	return ((struct wsheet*)jlong2ptr(sheet))->divW
+		* ((struct wsheet*)jlong2ptr(sheet))->colN;
 }
 
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeHeight
- * Signature: (I)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL
 Java_com_yhc_writer_WSheet__1nativeHeight(JNIEnv* env, jclass jclazz,
-					  jint sheet) {
-	return ((struct wsheet*)sheet)->divH * ((struct wsheet*)sheet)->rowN;
+					  jlong sheet) {
+	return ((struct wsheet*)jlong2ptr(sheet))->divH
+		* ((struct wsheet*)jlong2ptr(sheet))->rowN;
 }
 
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeCutout
- * Signature: (IIIII)V
+ * Signature: (JIIII)V
  */
 JNIEXPORT void JNICALL
 Java_com_yhc_writer_WSheet__1nativeCutout(JNIEnv* env, jclass jclazz,
-					    jint sheet,
+					    jlong sheet,
 					    jint l, jint t, jint r, jint b) {
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_print(DBG_PERF_FILL_RECT);
 	dbg_tpf_print(DBG_PERF_FIND_LINE);
 	dbg_tpf_print(DBG_PERF_DRAW_LINE);
 #endif /* CONFIG_DBG_STATISTICS */
-	wsheet_cutout((struct wsheet*)sheet, l, t, r, b);
+	wsheet_cutout(jlong2ptr(sheet), l, t, r, b);
 }
 
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeAdd
- * Signature: (IIIIICS)V
+ * Signature: (JIIIICS)V
  */
 JNIEXPORT void JNICALL
 Java_com_yhc_writer_WSheet__1nativeAdd(JNIEnv* env, jclass jclazz,
-				       jint sheet,
+				       jlong sheet,
 				       jint x0, jint y0,
 				       jint x1, jint y1,
 				       jbyte thick, jshort color) {
-	wsheet_add((struct wsheet*)sheet, x0, y0, x1, y1, thick, color);
+	wsheet_add(jlong2ptr(sheet), x0, y0, x1, y1, thick, color);
 }
 
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeDraw
- * Signature: (I[IIIIIIIIIF)V
+ * Signature: (J[IIIIIIIIIF)V
  */
 JNIEXPORT void JNICALL
 Java_com_yhc_writer_WSheet__1nativeDraw(JNIEnv* env, jclass jclazz,
-					jint sheet,
+					jlong sheet,
 					jintArray jarr,
 					jint w, jint h,
 					jint ox, jint oy,
@@ -136,7 +138,7 @@ Java_com_yhc_writer_WSheet__1nativeDraw(JNIEnv* env, jclass jclazz,
 
 	jint* pixels = (*env)->GetIntArrayElements(env, jarr, NULL);
 
-	wsheet_draw((struct wsheet*)sheet,
+	wsheet_draw(jlong2ptr(sheet),
 		    pixels, w, h, ox, oy, l, t, r, b, zf);
 
 	(*env)->ReleaseIntArrayElements(env, jarr, pixels, JNI_ABORT);
@@ -147,16 +149,16 @@ Java_com_yhc_writer_WSheet__1nativeDraw(JNIEnv* env, jclass jclazz,
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeSave
- * Signature: (ILjava/lang/String;)I
+ * Signature: (JLjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL
 Java_com_yhc_writer_WSheet__1nativeSave(JNIEnv* env, jclass jclazz,
-					jint sheet, jstring jpath) {
+					jlong sheet, jstring jpath) {
 
 	int             ret  = 0;
 	const char*     path = (*env)->GetStringUTFChars(env, jpath, NULL);
 	FILE*           fp   = fopen(path, "w");
-	struct wsheet*  wsh  = (struct wsheet*)sheet;
+	struct wsheet*  wsh  = jlong2ptr(sheet);
 	struct node*    n;
 	struct line*    ln;
 	int32_t         i, j, sz;
@@ -206,16 +208,16 @@ Java_com_yhc_writer_WSheet__1nativeSave(JNIEnv* env, jclass jclazz,
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeLoad
- * Signature: (ILjava/lang/String;)I
+ * Signature: (JLjava/lang/String;)I
  */
 JNIEXPORT jint JNICALL
 Java_com_yhc_writer_WSheet__1nativeLoad(JNIEnv* env, jclass jclazz,
-					jint sheet, jstring jpath) {
+					jlong sheet, jstring jpath) {
 
 	int             ret  = 0;
 	const char*     path = (*env)->GetStringUTFChars(env, jpath, NULL);
 	FILE*           fp   = fopen(path, "r");
-	struct wsheet*  wsh  = (struct wsheet*)sheet;
+	struct wsheet*  wsh  = jlong2ptr(sheet);
 	struct line*    ln;
 	int32_t	        i, j, k, sz;
 

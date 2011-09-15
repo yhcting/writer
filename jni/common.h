@@ -36,6 +36,15 @@
 #       define NULL ((void*)0)
 #endif
 
+
+/*
+ * To be free from compiler warning
+ * (cast from pointer to integer of different size)
+ * (cast to pointer from integer of different size)
+ */
+#define ptr2jlong(v) ((jlong)((intptr_t)(v)))
+#define jlong2ptr(v) ((void*)((intptr_t)(v)))
+
 #ifdef CONFIG_TEST_EXECUTABLE
 
 #include <assert.h>

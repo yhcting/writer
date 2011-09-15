@@ -34,7 +34,8 @@ import android.graphics.Rect;
 class WSheet {
 	private static final int _MAX_V = 0x0000ffff; // internally, cooridnate value is treated as unsigned short!!
 
-	private final int _native_sheet;
+	// to support 64bit host machine.
+	private final long _native_sheet;
 
 	private final Rect _boundary = new Rect(0, 0, 0, 0);
 
@@ -112,27 +113,27 @@ class WSheet {
 	/******************************
 	 * Native functions!!
 	 ******************************/
-	private static native int _nativeCreateWsheet();
+	private static native long _nativeCreateWsheet();
 
-	private static native int _nativeInitWsheet(int native_sheet, int divW, int divH, int colN, int rowN);
+	private static native int  _nativeInitWsheet(long native_sheet, int divW, int divH, int colN, int rowN);
 
-	private static native void _nativeDestroyWsheet(int native_sheet);
+	private static native void _nativeDestroyWsheet(long native_sheet);
 
-	private static native int _nativeWidth(int native_sheet);
+	private static native int  _nativeWidth(long native_sheet);
 
-	private static native int _nativeHeight(int native_sheet);
+	private static native int  _nativeHeight(long native_sheet);
 
-	private static native void _nativeCutout(int native_sheet, int l, int t, int r, int b);
+	private static native void _nativeCutout(long native_sheet, int l, int t, int r, int b);
 
-	private static native void _nativeAdd(int native_sheet, int x0, int y0, int x1, int y1, byte thick, short color);
+	private static native void _nativeAdd(long native_sheet, int x0, int y0, int x1, int y1, byte thick, short color);
 
-	private static native void _nativeDraw(int native_sheet, int[] pixels,
+	private static native void _nativeDraw(long native_sheet, int[] pixels,
 						int w, int h, int ox, int oy,
 						int l, int t, int r, int b,
 						float zf);
 
-	private static native int _nativeSave(int native_sheet, String filepath);
+	private static native int _nativeSave(long native_sheet, String filepath);
 
-	private static native int _nativeLoad(int native_sheet, String filepath);
+	private static native int _nativeLoad(long native_sheet, String filepath);
 
 }
