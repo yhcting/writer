@@ -26,33 +26,38 @@
 
 #include "common.h"
 #include "g2d.h"
+#include "nmp.h"
 #include "listut.h"
 
 void
-div_find_lines(struct div* div,
+div_find_lines(const struct div* div,
 	       struct list_link* out,
 	       int32_t l, int32_t t, int32_t r, int32_t b);
+
+void
+div_clean(struct div* div);
+
+static inline void
+div_add_obj(struct div* div, struct obj* o) {
+	nlist_add(&div->objs, o);
+	o->ref++;
+}
+
+void
+div_del_obj(struct div* div, struct obj* o);
 
 static inline void
 div_init(struct div* div,
 	 int32_t l, int32_t t, int32_t r, int32_t b) {
 	list_init_link(&div->lns);
+	list_init_link(&div->objs);
 	rect_set(&div->boundary, l, t, r, b);
 }
 
 static inline void
-div_clean(struct div* div) {
-	struct node* n;
-	list_foreach_item(n, &div->lns, struct node, lk) {
-		wfree(n->ln);
-	}
-	wlist_clean(&div->lns);
-}
-
-static inline void
-div_add(struct div* div, struct line* ln) {
+div_add_line(struct div* div, struct line* ln) {
 	ln->div = div;
-	wlist_add_line(&div->lns, ln);
+	nlist_add(&div->lns, ln);
 	ln->divlk = div->lns._prev;
 }
 

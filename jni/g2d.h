@@ -43,7 +43,7 @@ g2d_splitY(int32_t* out_intersectx,
 
 static inline bool
 splitX(int32_t* out_intersecty,
-       struct line* ln,
+       const struct line* ln,
        int32_t x, int32_t yt, int32_t yb) {
 	return g2d_splitX(out_intersecty,
 			  ln->x0, ln->y0,
@@ -54,7 +54,7 @@ splitX(int32_t* out_intersecty,
 
 static inline bool
 splitY(int32_t* out_intersectx,
-       struct line* ln,
+       const struct line* ln,
        int32_t y, int32_t xl, int32_t xr) {
 	return g2d_splitY(out_intersectx,
 			  ln->x0, ln->y0,
@@ -103,6 +103,12 @@ line_boundary(const struct line* ln, struct rect* out) {
 static inline int32_t
 rect_is_empty(const struct rect* r) {
 	return r->l >= r->r || r->t >= r->b;
+}
+
+static inline bool
+rect_is_overwrapped(const struct rect* r0, const struct rect* r1) {
+	return !(r0->r <= r1->l || r0->t >= r1->b
+		 || r1->r <= r0->l || r1->t >= r0->b);
 }
 
 static inline int32_t

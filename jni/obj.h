@@ -18,28 +18,9 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-#ifndef _AHASh_h_
-#define _AHASh_h_
+#ifndef _OBj_h_
+#define _OBj_h_
 
-#include <stdbool.h>
-#include <stdint.h>
 
-struct ahash*
-ahash_create(void);
 
-void
-ahash_destroy(struct ahash* h);
-
-uint32_t
-ahash_sz(const struct ahash* h);
-
-struct ahash*
-ahash_add(struct ahash* h, void* p);
-
-struct ahash*
-ahash_del(struct yahash* h, void* p);
-
-bool
-ahash_check(const struct yahash* h, void* p);
-
-#endif /* _AHASh_h_ */
+#endif /* _OBj_h_ */

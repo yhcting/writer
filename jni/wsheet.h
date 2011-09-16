@@ -26,8 +26,8 @@
 #include "gtype.h"
 #include "div.h"
 
-void
-wsys_deinit(void);
+DECL_EXTERN_UT_ONLY(void
+wsys_deinit(void);)
 
 struct wsheet*
 wsheet_create(void);
@@ -40,15 +40,25 @@ void
 wsheet_destroy(struct wsheet* wsh);
 
 void
-wsheet_cutout(struct wsheet* wsh,
-	      int32_t l, int32_t t, int32_t r, int32_t b);
+wsheet_cutout_lines(struct wsheet* wsh,
+		    int32_t l, int32_t t, int32_t r, int32_t b);
 
 void
-wsheet_add(struct wsheet* wsh,
-	   int32_t x0, int32_t y0,
-	   int32_t x1, int32_t y1,
-	   uint8_t thick,
-	   uint16_t color);
+wsheet_add_line(struct wsheet* wsh,
+		int32_t x0, int32_t y0,
+		int32_t x1, int32_t y1,
+		uint8_t thick,
+		uint16_t color);
+
+void
+wsheet_add_obj(struct wsheet* wsh,
+	       uint16_t type, void* data,
+	       int32_t l, int32_t t, int32_t r, int32_t b);
+
+void
+wsheet_del_obj(struct wsheet* wsh, struct obj* o);
+
+/* this functions is externed only for unit test */
 
 /*
  * NOTE!!!:
@@ -58,11 +68,9 @@ wsheet_add(struct wsheet* wsh,
  * out_keep : all list link should be preserved.
  * out_new : all list link should be deleted.
  */
-void
-wsheet_find_lines(struct wsheet* wsh, struct list_link* out,
-		  int32_t l, int32_t t, int32_t r, int32_t b);
-
-
+DECL_EXTERN_UT_ONLY(void
+wsheet_find_lines(const struct wsheet* wsh, struct list_link* out,
+		  int32_t l, int32_t t, int32_t r, int32_t b);)
 
 static inline void
 wsheet_clean(struct wsheet* wsh) {

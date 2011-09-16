@@ -54,14 +54,24 @@ struct line {
 	struct list_link*   divlk;
 };
 
+/*
+ * all objects except for line segment.
+ */
+struct obj {
+	struct rect         extent;
+	uint16_t            ty;   /* object type */
+	int16_t             ref;  /* reference count */
+	void*               priv; /* object private data */
+};
+
 struct node {
-	struct line*       ln;
 	struct list_link   lk;
+	void*              v;  /* value of this node */
 };
 
 struct wsheet {
-	int32_t	     divW, divH, colN, rowN;
-	struct div** divs; /* divs[row][col] */
+	int32_t	          divW, divH, colN, rowN;
+	struct div**      divs; /* divs[row][col] */
 };
 
 

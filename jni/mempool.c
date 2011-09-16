@@ -154,17 +154,17 @@ _destroy_lock(struct mp* mp) {
 }
 
 static inline uint32_t
-_align_adjust(struct mp* mp) {
+_align_adjust(const struct mp* mp) {
 	return sizeof(void*) - (mp->esz % sizeof(void*));
 }
 
 static inline uint32_t
-_esz(struct mp* mp) {
+_esz(const struct mp* mp) {
 	return mp->esz + _align_adjust(mp);
 }
 
 static inline uint32_t
-_blksz(struct mp* mp) {
+_blksz(const struct mp* mp) {
 	return sizeof(struct _blk) - sizeof(struct _dummy) + _esz(mp);
 }
 

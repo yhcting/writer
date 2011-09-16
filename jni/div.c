@@ -31,8 +31,48 @@
 /********************************
  * Functions for div
  ********************************/
+static void
+_del_line_node(struct div* div, struct node* n) {
+	wassert(&n->lk != &div->objs);
+	if (&n->lk == &div->objs)
+		return;
+
+	wfree(n->v);
+	nlist_del(n);
+}
+
+static void
+_del_obj_node(struct div* div, struct node* n) {
+	struct obj* o = n->v;
+	wassert(&n->lk != &div->objs);
+	if (&n->lk == &div->objs)
+		return;
+
+	nlist_del(n);
+	o->ref--;
+
+	/*
+	 * object is not refered anymore.
+	 * free it!
+	 */
+	if (!o->ref)
+		wfree(o);
+}
+
+
 void
-div_find_lines(struct div* div,
+div_clean(struct div* div) {
+	struct node *n, *tmp;
+	/* clean lines */
+	list_foreach_item_removal_safe(n, tmp,  &div->lns, struct node, lk)
+		_del_line_node(div, n);
+
+	list_foreach_item_removal_safe(n, tmp, &div->objs, struct node, lk)
+		_del_obj_node(div, n);
+}
+
+void
+div_find_lines(const struct div* div,
 	       struct list_link* out,
 	       int32_t l, int32_t t, int32_t r, int32_t b) {
 	struct node*   n;
@@ -43,7 +83,7 @@ div_find_lines(struct div* div,
 	rect_set(&rect, l, t, r, b);
 
 	list_foreach_item(n, &div->lns, struct node, lk) {
-		ln = n->ln;
+		ln = n->v;
 		b_intersected = false;
 		/* Check that line is expands on this rectangle region. */
 		if (rect_contains(&rect, ln->x0, ln->y0)
@@ -60,6 +100,33 @@ div_find_lines(struct div* div,
 			}
 		}
 		if (b_intersected)
-			wlist_add_line(out, ln);
+			nlist_add(out, ln);
 	}
+}
+
+void
+div_find_objs(const struct div* div,
+	      struct list_link* out,
+	      int32_t l, int32_t t, int32_t r, int32_t b) {
+	struct node*   n;
+	struct obj*    o;
+	struct rect    rect;
+
+	rect_set(&rect, l, t, r, b);
+
+	list_foreach_item(n, &div->objs, struct node, lk) {
+		o = n->v;
+		if (rect_is_overwrapped(&o->extent, &rect))
+			nlist_add(out, o);
+	}
+}
+
+void
+div_del_obj(struct div* div, struct obj* o) {
+	struct node* n;
+	list_foreach_item(n, &div->objs, struct node, lk)
+		if (n->v == o)
+			break;
+
+	_del_obj_node(div, n);
 }

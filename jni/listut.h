@@ -29,7 +29,10 @@
 
 
 static inline void
-wlist_clean(struct list_link* head) {
+nlist_clean(struct list_link* head)
+	__attribute__((unused));
+static inline void
+nlist_clean(struct list_link* head) {
 	struct node* n;
 	struct node* tmp;
 	list_foreach_item_removal_safe(n, tmp, head, struct node, lk) {
@@ -38,19 +41,34 @@ wlist_clean(struct list_link* head) {
 	list_init_link(head);
 }
 
-static void
-wlist_add_line(struct list_link* head, struct line* ln) {
+static inline void
+nlist_add(struct list_link* head, void* v)
+	__attribute__((unused));
+static inline void
+nlist_add(struct list_link* head, void* v) {
 	struct node* n;
 	n = nmp_alloc();
-	n->ln = ln;
+	n->v = v;
 	list_add_last(head, &n->lk);
 }
 
 static inline void
-wlist_add_list(struct list_link* head, const struct list_link* in) {
+nlist_del(struct node* n)
+	__attribute__((unused));
+static inline void
+nlist_del(struct node* n) {
+	list_del(&n->lk);
+	nmp_free(n);
+}
+
+static inline void
+nlist_add_nlist(struct list_link* head, const struct list_link* in)
+	__attribute__((unused));
+static inline void
+nlist_add_nlist(struct list_link* head, const struct list_link* in) {
 	struct node* n;
 	list_foreach_item(n, in, struct node, lk) {
-		wlist_add_line(head, n->ln);
+		nlist_add(head, n->v);
 	}
 }
 

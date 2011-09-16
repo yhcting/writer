@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <malloc.h>
+#include <stdint.h>
 
 #include "jni.h"
 
@@ -105,7 +106,7 @@ Java_com_yhc_writer_WSheet__1nativeCutout(JNIEnv* env, jclass jclazz,
 	dbg_tpf_print(DBG_PERF_FIND_LINE);
 	dbg_tpf_print(DBG_PERF_DRAW_LINE);
 #endif /* CONFIG_DBG_STATISTICS */
-	wsheet_cutout(jlong2ptr(sheet), l, t, r, b);
+	wsheet_cutout_lines(jlong2ptr(sheet), l, t, r, b);
 }
 
 /*
@@ -119,7 +120,7 @@ Java_com_yhc_writer_WSheet__1nativeAdd(JNIEnv* env, jclass jclazz,
 				       jint x0, jint y0,
 				       jint x1, jint y1,
 				       jbyte thick, jshort color) {
-	wsheet_add(jlong2ptr(sheet), x0, y0, x1, y1, thick, color);
+	wsheet_add_line(jlong2ptr(sheet), x0, y0, x1, y1, thick, color);
 }
 
 /*
@@ -181,7 +182,7 @@ Java_com_yhc_writer_WSheet__1nativeSave(JNIEnv* env, jclass jclazz,
 					  &wsh->divs[i][j].lns,
 					  struct node,
 					  lk) {
-				ln = n->ln;
+				ln = n->v;
 				_FW(ln->x0);
 				_FW(ln->y0);
 				_FW(ln->x1);
@@ -245,7 +246,7 @@ Java_com_yhc_writer_WSheet__1nativeLoad(JNIEnv* env, jclass jclazz,
 				_FR(ln->color);
 				_FR(ln->thick);
 				_FR(ln->alpha);
-				div_add(&wsh->divs[i][j], ln);
+				div_add_line(&wsh->divs[i][j], ln);
 			}
 		}
 	}

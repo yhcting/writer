@@ -62,7 +62,6 @@ _deinit(void) {
 	nmp_destroy();
 }
 
-
 static inline struct node*
 _node(struct list_link* link) {
 	return container_of(link, struct node, lk);
@@ -76,7 +75,7 @@ _node(struct list_link* link) {
  * get division where line should be assigned to
  */
 static inline struct div*
-_wsheet_div(struct wsheet* wsh, struct line* ln) {
+_wsheet_div(const struct wsheet* wsh, struct line* ln) {
 	/*
 	 * NOTE !!
 	 * division should be calculated based on minimum value!!
@@ -95,7 +94,7 @@ _wsheet_div(struct wsheet* wsh, struct line* ln) {
 }
 
 static inline bool
-_wsheet_splitX(struct wsheet* wsh,
+_wsheet_splitX(const struct wsheet* wsh,
 	       int32_t* out_intersecty,
 	       struct line* ln, int32_t x) {
 	return splitX(out_intersecty, ln, x, 0, wsh->divH * wsh->rowN);
@@ -103,28 +102,24 @@ _wsheet_splitX(struct wsheet* wsh,
 
 
 static inline bool
-_wsheet_splitY(struct wsheet* wsh,
+_wsheet_splitY(const struct wsheet* wsh,
 	       int32_t* out_intersectx,
 	       struct line* ln, int32_t y) {
 	return splitY(out_intersectx, ln, y, 0, wsh->divW * wsh->colN);
 }
-
-
-
-
 
 /*
  * find lines in the given rectangle division group
  * (bi and ri are NOT included)
  */
 static inline void
-_wsheet_find_lines_(struct wsheet* wsh, struct list_link* out,
+_wsheet_find_lines_(const struct wsheet* wsh, struct list_link* out,
 		    int32_t ti, int32_t bi, int32_t li, int32_t ri) {
 	int32_t i, j;
 	/* fully included division - we don't need to check. */
 	for (i = ti; i < bi; i++)
 		for (j = li; j < ri; j++)
-			wlist_add_list(out, &wsh->divs[i][j].lns);
+			nlist_add_nlist(out, &wsh->divs[i][j].lns);
 }
 
 #if defined(CONFIG_DUALCORE) && !defined(CONFIG_ARCH_ARM)
@@ -155,8 +150,8 @@ _wsheet_find_lines_worker(void* arg) {
  * out_keep : all list link should be preserved.
  * out_new : all list link should be deleted.
  */
-void
-wsheet_find_lines(struct wsheet* wsh, struct list_link* out,
+EXTERN_UT_ONLY void
+wsheet_find_lines(const struct wsheet* wsh, struct list_link* out,
 		  int32_t l, int32_t t, int32_t r, int32_t b) {
 
 #define __horizontal_strip()						\
@@ -275,7 +270,7 @@ _draw_(struct list_link* head,
 	struct line* ln;
 
 	while (lk != head) {
-		ln = _node(lk)->ln;
+		ln = _node(lk)->v;
 		draw_line(pixels,
 			  w, h,
 			  _rbg16to32(ln->color),
@@ -309,8 +304,8 @@ _draw_worker(void* arg) {
 /*
  * For debugging system.
  */
-void wsys_deinit(void) __attribute__((unused));
-void
+EXTERN_UT_ONLY void wsys_deinit(void) __attribute__((unused));
+EXTERN_UT_ONLY void
 wsys_deinit(void) {
 	_deinit();
 }
@@ -318,6 +313,7 @@ wsys_deinit(void) {
 struct wsheet*
 wsheet_create(void) {
 	struct wsheet* sh = wmalloc(sizeof(*sh));
+	wassert(sh);
 
 	if (!_initialized)
 		_init();
@@ -359,7 +355,8 @@ wsheet_destroy(struct wsheet* wsh) {
 }
 
 void
-wsheet_cutout(struct wsheet* wsh, int32_t l, int32_t t, int32_t r, int32_t b) {
+wsheet_cutout_lines(struct wsheet* wsh,
+		    int32_t l, int32_t t, int32_t r, int32_t b) {
 	struct list_link   lns;
 	struct line*       oln; /* original line */
 	struct line*       ln;
@@ -372,7 +369,7 @@ wsheet_cutout(struct wsheet* wsh, int32_t l, int32_t t, int32_t r, int32_t b) {
 	wsheet_find_lines(wsh, &lns, l, t, r, b);
 
 	list_foreach_item(n, &lns, struct node, lk) {
-		ln = oln = n->ln;
+		ln = oln = n->v;
 
 		/* check for all for edge. */
 		if (splitX(&intersect, ln, l, t, b)) {
@@ -381,7 +378,7 @@ wsheet_cutout(struct wsheet* wsh, int32_t l, int32_t t, int32_t r, int32_t b) {
 			line_set(tmpl, ln->x0, ln->y0, l, intersect);
 			tmpl->thick = oln->thick;
 			tmpl->color = oln->color;
-			div_add(oln->div, tmpl);
+			div_add_line(oln->div, tmpl);
 			line_set(ln, l, intersect, ln->x1, ln->y1);
 		}
 		if (splitX(&intersect, ln, r, t, b)) {
@@ -390,7 +387,7 @@ wsheet_cutout(struct wsheet* wsh, int32_t l, int32_t t, int32_t r, int32_t b) {
 			line_set(tmpl, ln->x1, ln->y1, r, intersect);
 			tmpl->thick = oln->thick;
 			tmpl->color = oln->color;
-			div_add(oln->div, tmpl);
+			div_add_line(oln->div, tmpl);
 			line_set(ln, r, intersect, ln->x0, ln->y0);
 		}
 		if (splitY(&intersect, ln, t, l, r)) {
@@ -404,7 +401,7 @@ wsheet_cutout(struct wsheet* wsh, int32_t l, int32_t t, int32_t r, int32_t b) {
 				line_set(tmpl, ln->x1, ln->y1, intersect, t);
 				line_set(ln, ln->x0, ln->y0, intersect, t);
 			}
-			div_add(oln->div, tmpl);
+			div_add_line(oln->div, tmpl);
 		}
 		if (splitY(&intersect, ln, b, l, r)) {
 			tmpl = wmalloc(sizeof(*tmpl));
@@ -417,7 +414,7 @@ wsheet_cutout(struct wsheet* wsh, int32_t l, int32_t t, int32_t r, int32_t b) {
 				line_set(tmpl, ln->x0, ln->y0, intersect, b);
 				line_set(ln, ln->x1, ln->y1, intersect, b);
 			}
-			div_add(oln->div, tmpl);
+			div_add_line(oln->div, tmpl);
 		}
 
 		/* free link */
@@ -427,15 +424,15 @@ wsheet_cutout(struct wsheet* wsh, int32_t l, int32_t t, int32_t r, int32_t b) {
 		wfree(oln);
 	}
 
-	wlist_clean(&lns);
+	nlist_clean(&lns);
 }
 
 void
-wsheet_add(struct wsheet* wsh,
-	   int32_t x0, int32_t y0,
-	   int32_t x1, int32_t y1,
-	   uint8_t thick,
-	   uint16_t color) {
+wsheet_add_line(struct wsheet* wsh,
+		int32_t x0, int32_t y0,
+		int32_t x1, int32_t y1,
+		uint8_t thick,
+		uint16_t color) {
 
 	struct list_link   list;
 	struct list_link   splits;
@@ -471,7 +468,7 @@ wsheet_add(struct wsheet* wsh,
 	for (i=vmin; i <= vmax; i++) {
 		v = (i + 1) * wsh->divH;
 		if (!_wsheet_splitY(wsh, &intersect, l, v)) {
-			wlist_add_line(&list, l);
+			nlist_add(&list, l);
 			break;
 		}
 
@@ -486,12 +483,12 @@ wsheet_add(struct wsheet* wsh,
 		}
 		tmpl->thick = thick;
 		tmpl->color = color;
-		wlist_add_line(&list, tmpl);
+		nlist_add(&list, tmpl);
 	}
 
 	/* check vertical - column - split */
 	list_foreach_item(n, &list, struct node, lk) {
-		l = n->ln;
+		l = n->v;
 
 		vmin = l->x0 / wsh->divW;
 		vmax = l->x1 / wsh->divW;
@@ -499,7 +496,7 @@ wsheet_add(struct wsheet* wsh,
 		for (i = vmin; i <= vmax; i++) {
 			v = (i + 1) * wsh->divW;
 			if (!_wsheet_splitX(wsh, &intersect, l, v)) {
-				wlist_add_line(&splits, l);
+				nlist_add(&splits, l);
 				break;
 			}
 
@@ -507,18 +504,55 @@ wsheet_add(struct wsheet* wsh,
 			tmpl->thick = thick;
 			tmpl->color = color;
 			line_set(tmpl, l->x0, l->y0, v, intersect);
-			wlist_add_line(&splits, tmpl);
+			nlist_add(&splits, tmpl);
 			line_set(l, v, intersect, l->x1, l->y1);
 		}
 	}
-	wlist_clean(&list);
+	nlist_clean(&list);
 
 	/* assign to division */
 	list_foreach_item(n, &splits, struct node, lk) {
-		div_add(_wsheet_div(wsh, n->ln), n->ln);
+		div_add_line(_wsheet_div(wsh, n->v), n->v);
 	}
-	wlist_clean(&splits);
+	nlist_clean(&splits);
 }
+
+void
+wsheet_add_obj(struct wsheet* wsh,
+	       uint16_t type, void* data,
+	       int32_t l, int32_t t, int32_t r, int32_t b) {
+	int32_t     i, j;
+	struct obj* o = wmalloc(sizeof(*o));
+	rect_set(&o->extent, l, t, r, b);
+	o->ty = type;
+	o->ref = 0;
+	o->priv = data;
+
+	for (i = 0; i < wsh->rowN; i++) {
+		for (j = 0; j < wsh->colN; j++) {
+			if (rect_is_overwrapped(&o->extent,
+						&wsh->divs[i][j].boundary))
+				div_add_obj(&wsh->divs[i][j], o);
+		}
+	}
+
+	/* if obj is not added anywhere, destroy it! */
+	if (!o->ref)
+		wfree(o);
+}
+
+void
+wsheet_del_obj(struct wsheet* wsh, struct obj* o) {
+	int32_t      i, j;
+	for (i = 0; i < wsh->rowN; i++) {
+		for (j = 0; j < wsh->colN; j++) {
+			if (rect_is_overwrapped(&o->extent,
+						&wsh->divs[i][j].boundary))
+				div_del_obj(&wsh->divs[i][j], o);
+		}
+	}
+}
+
 
 void
 wsheet_draw(struct wsheet* wsh,
@@ -585,7 +619,7 @@ wsheet_draw(struct wsheet* wsh,
 
 #endif /* CONFIG_DUALCORE */
 
-	wlist_clean(&lns);
+	nlist_clean(&lns);
 
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_check_end(DBG_PERF_DRAW_LINE);

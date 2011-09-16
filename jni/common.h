@@ -47,6 +47,13 @@
 
 #ifdef CONFIG_TEST_EXECUTABLE
 
+
+/*
+ * function is declared global only at UNIT TEST
+ */
+#define DECL_EXTERN_UT_ONLY(x) x
+#define EXTERN_UT_ONLY
+
 #include <assert.h>
 
 #define wassert(x)  assert(x)
@@ -72,6 +79,9 @@ void wregister_tstfn(int32_t (*fn)(void), const char* mod);
 	}
 
 #else /* CONFIG_TEST_EXECUTABLE */
+
+#define DECL_EXTERN_UT_ONLY(x)
+#define EXTERN_UT_ONLY          static
 
 #include <malloc.h>
 

@@ -160,7 +160,7 @@ ahash_destroy(struct ahash* h) {
 }
 
 uint32_t
-ahash_sz(struct ahash* h) {
+ahash_sz(const struct ahash* h) {
 	return h->sz;
 }
 
@@ -200,7 +200,7 @@ ahash_del(struct ahash* h, void* p) {
 }
 
 bool
-ahash_check(struct ahash* h, void* p) {
+ahash_check(const struct ahash* h, void* p) {
 	struct _hn* n = _hfind(h, (uintptr_t)p);
 	return n? true: false;
 }
