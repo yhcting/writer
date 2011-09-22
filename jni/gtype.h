@@ -31,6 +31,12 @@
  *     (Number of lines can be reachs to 1,000,000!! We should consider this!)
  */
 
+
+/*
+ * 'left' and 'top' is included at rect.
+ * But, 'right' and 'bottom' is not included.
+ * rect = { (x, y) | x is [l, r), y is [t, b) }
+ */
 struct rect {
 	int32_t l, t, r, b;
 };
@@ -42,10 +48,10 @@ struct div {
 };
 
 /*
- * x-sorted. That is, (x0 <= x1) should be alwasy true!.
+ * (x0, y0) is closed. (x1, y1) is open
  */
 struct line {
-	uint16_t    x0, y0, x1, y1;
+	int32_t     x0, y0, x1, y1;
 	uint16_t    color; /* 16bit color */
 	uint8_t	    alpha; /* alpha value of color (not used yet) */
 	uint8_t	    thick; /* 1~255 is enough! */
@@ -70,7 +76,7 @@ struct node {
 };
 
 struct wsheet {
-	int32_t	          divW, divH, colN, rowN;
+	uint32_t          divW, divH, colN, rowN;
 	struct div**      divs; /* divs[row][col] */
 };
 

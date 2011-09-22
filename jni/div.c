@@ -85,17 +85,32 @@ div_find_lines(const struct div* div,
 	list_foreach_item(n, &div->lns, struct node, lk) {
 		ln = n->v;
 		b_intersected = false;
-		/* Check that line is expands on this rectangle region. */
-		if (rect_contains(&rect, ln->x0, ln->y0)
-		     || rect_contains(&rect, ln->x1, ln->y1)) {
+		/*
+		 * Check that line is expands on this rectangle region.
+		 */
+
+		/*
+		 * Note:
+		 *   ln->x1 and ln->y1 is open set.
+		 */
+		if ((ln->x0 < l && ln->x1 <= l)
+		    || (ln->x0 >= r && ln->x1 >= r)
+		    || (ln->y0 < t && ln->y1 <= t)
+		    || (ln->y0 >= b && ln->y1 >= b))
+			/* trivially not intersected */
+			;
+		else if (rect_is_contains(&rect, ln->x0, ln->y0)
+		    /* check for open point */
+		    || (ln->x1 > l && ln->x1 < (r - 1)
+			&& ln->y1 > t && ln->y1 < (b - 1 ))) {
 			/* trivial case! */
 			b_intersected = true;
 		} else {
 			int32_t intersect;;
-			if (splitX(&intersect, ln, l, t, b)
-			    || splitX(&intersect, ln, r, t, b)
-			    || splitY(&intersect, ln, t, l, r)
-			    || splitY(&intersect, ln, b, l, r)) {
+			if (intersectX(&intersect, ln, l, t, b)
+			    || intersectX(&intersect, ln, r, t, b)
+			    || intersectY(&intersect, ln, t, l, r)
+			    || intersectY(&intersect, ln, b, l, r)) {
 				b_intersected = true;
 			}
 		}

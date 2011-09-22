@@ -31,15 +31,15 @@ static int
 _test_g2d(void) {
 	int32_t out;
 
-	wassert(0 == g2d_splitX(&out, 1, 1, 5, 1, 1, 0, 5));
-	wassert(0 == g2d_splitX(&out, 1, 1, 5, 1, 5, 0, 5));
-	wassert(0 == g2d_splitY(&out, 1, 1, 5, 1, 1, 0, 5));
-	wassert(0 == g2d_splitX(&out, 1, 1, 5, 1, 0, 0, 5));
-	wassert(0 == g2d_splitX(&out, 1, 1, 5, 3, 0, 0, 5));
-	wassert(1 == g2d_splitX(&out, 1, 1, 5, 3, 2, 0, 5));
-	wassert(0 == g2d_splitX(&out, 1, 1, 5, 3, 5, 0, 3));
-	wassert(0 == g2d_splitY(&out, 1, 1, 5, 3, 3, 0, 6));
-	wassert(1 == g2d_splitY(&out, 1, 1, 5, 3, 2, 0, 6));
+	wassert(1 == g2d_intersectX(&out, 1, 1, 5, 1, 1, 0, 5));
+	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 1, 5, 0, 5));
+	wassert(2 == g2d_intersectY(&out, 1, 1, 5, 1, 1, 0, 5));
+	wassert(0 == g2d_intersectY(&out, 1, 1, 5, 1, 0, 0, 5));
+	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 3, 0, 0, 5));
+	wassert(1 == g2d_intersectX(&out, 1, 1, 5, 3, 2, 0, 5));
+	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 3, 5, 0, 3));
+	wassert(0 == g2d_intersectY(&out, 1, 1, 5, 3, 3, 0, 6));
+	wassert(1 == g2d_intersectY(&out, 1, 1, 5, 3, 2, 0, 6));
 
 	return 0;
 }

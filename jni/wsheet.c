@@ -20,6 +20,7 @@
 
 #include "config.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <malloc.h>
 #ifdef CONFIG_DUALCORE
@@ -43,6 +44,26 @@ static bool _initialized = false;
 #ifdef CONFIG_MEMPOOL
 struct mp* g_wsheet_nmp = NULL; /* node memory pool */
 #endif /* CONFIG_MEMPOOL */
+
+/*
+ * Utility functions
+ */
+
+/*
+ * get division index.
+ * -1 means invalid. (index should be >= 0)
+ */
+static inline int32_t
+_divI(int32_t v, uint32_t divV) {
+	int32_t V = (int32_t)divV;
+	if (!(v % V))
+		return v / V;
+	else if (v < 0)
+		return (v - V) / V;
+	else
+		return v / V;
+}
+
 
 static void
 _init(void) {
@@ -71,41 +92,26 @@ _node(struct list_link* link) {
  * Functions for struct wsheet
  ********************************/
 
+static inline bool
+_wsheet_is_contains(const struct wsheet* wsh, int32_t x, int32_t y) {
+	return !(x < 0 || x >= wsh->divW * wsh->colN
+		 || y < 0 || y >= wsh->divH * wsh->rowN);
+}
+
 /*
  * get division where line should be assigned to
  */
 static inline struct div*
-_wsheet_div(const struct wsheet* wsh, struct line* ln) {
+_wsheet_div_line(const struct wsheet* wsh, struct line* ln) {
 	/*
 	 * NOTE !!
-	 * division should be calculated based on minimum value!!
-	 * This algorithm is tightly coupled with "split" algorithm.
-	 * We split from smaller value to larger value
-	 *   and we include point on the line...
-	 * That's why we should consider only smaller value!
+	 * (x0, y0) is closed, but (x1, y1) is open.
+	 * So, division should be calculated based on (x0, y0) of line!!
 	 */
 	int32_t c, r;
-	c = ln->x0 / wsh->divW;
-	if (ln->y0 < ln->y1)
-		r = ln->y0 / wsh->divH;
-	else
-		r = ln->y1 / wsh->divH;
-	return &wsh->divs[r][c];
-}
-
-static inline bool
-_wsheet_splitX(const struct wsheet* wsh,
-	       int32_t* out_intersecty,
-	       struct line* ln, int32_t x) {
-	return splitX(out_intersecty, ln, x, 0, wsh->divH * wsh->rowN);
-}
-
-
-static inline bool
-_wsheet_splitY(const struct wsheet* wsh,
-	       int32_t* out_intersectx,
-	       struct line* ln, int32_t y) {
-	return splitY(out_intersectx, ln, y, 0, wsh->divW * wsh->colN);
+	c = _divI(ln->x0, wsh->divW);
+	r = _divI(ln->y0, wsh->divH);
+	return 	(c >= 0 && r >= 0)? &wsh->divs[r][c]: NULL;
 }
 
 /*
@@ -185,16 +191,25 @@ wsheet_find_lines(const struct wsheet* wsh, struct list_link* out,
 
 	int32_t i;
 	/* left index */
-	int32_t li = l / wsh->divW;
+	int32_t li = _divI(l, wsh->divW);
 	/* top index */
-	int32_t ti = t / wsh->divH;
+	int32_t ti = _divI(t, wsh->divH);
 	/* right index (exclude right line); */
-	int32_t ri = (0 == r % wsh->divW)? r / wsh->divW - 1: r / wsh->divW;
+	int32_t ri = (0 == r % wsh->divW)? r / wsh->divW - 1: _divI(r, wsh->divW);
 	/* bottom index (exclude bottom line); */
-	int32_t bi = (0 == b % wsh->divH)? b / wsh->divH - 1: b / wsh->divH;
+	int32_t bi = (0 == b % wsh->divH)? b / wsh->divH - 1: _divI(b, wsh->divH);
 
 	if (r <= l || b <= t)
 		return; /* empty rectangle.. nothing to do... */
+
+	if (li < 0)
+		li = 0;
+	if (ti < 0)
+		ti = 0;
+	if (ri >= wsh->colN)
+		ri = wsh->colN - 1;
+	if (bi >= wsh->rowN)
+		bi = wsh->rowN - 1;
 
 
 #ifdef CONFIG_DBG_STATISTICS
@@ -358,7 +373,6 @@ void
 wsheet_cutout_lines(struct wsheet* wsh,
 		    int32_t l, int32_t t, int32_t r, int32_t b) {
 	struct list_link   lns;
-	struct line*       oln; /* original line */
 	struct line*       ln;
 	struct line*       tmpl;
 	int32_t            intersect;
@@ -369,59 +383,78 @@ wsheet_cutout_lines(struct wsheet* wsh,
 	wsheet_find_lines(wsh, &lns, l, t, r, b);
 
 	list_foreach_item(n, &lns, struct node, lk) {
-		ln = oln = n->v;
+		ln = n->v;
+
+		/*
+		 * We don't care about below case
+		 *   line is parallel with rectangle edge.
+		 * So, line this is subset of rectangle edge is not removed!
+		 * FIXME
+		 *   Above case should be handled...
+		 *   But that makes code complex.
+		 *   So, let's skip at this moment.
+		 */
 
 		/* check for all for edge. */
-		if (splitX(&intersect, ln, l, t, b)) {
-			/* NOTE: X-sorted */
+		if (intersectX(&intersect, ln, l, t, b)) {
 			tmpl = wmalloc(sizeof(*tmpl));
-			line_set(tmpl, ln->x0, ln->y0, l, intersect);
-			tmpl->thick = oln->thick;
-			tmpl->color = oln->color;
-			div_add_line(oln->div, tmpl);
-			line_set(ln, l, intersect, ln->x1, ln->y1);
+			tmpl->thick = ln->thick;
+			tmpl->color = ln->color;
+
+			if (ln->x0 < ln->x1) {
+				line_set(tmpl, ln->x0, ln->y0, l, intersect);
+				line_set(ln, l, intersect, ln->x1, ln->y1);
+			} else {
+				line_set(tmpl, l, intersect, ln->x1, ln->y1);
+				line_set(ln, ln->x0, ln->y0, l, intersect);
+			}
+			div_add_line(ln->div, tmpl);
 		}
-		if (splitX(&intersect, ln, r, t, b)) {
-			/* NOTE X-sorted */
+		if (intersectX(&intersect, ln, r, t, b)) {
 			tmpl = wmalloc(sizeof(*tmpl));
-			line_set(tmpl, ln->x1, ln->y1, r, intersect);
-			tmpl->thick = oln->thick;
-			tmpl->color = oln->color;
-			div_add_line(oln->div, tmpl);
-			line_set(ln, r, intersect, ln->x0, ln->y0);
+			tmpl->thick = ln->thick;
+			tmpl->color = ln->color;
+			if (ln->x0 < ln->x1) {
+				line_set(ln, ln->x0, ln->y0, r, intersect);
+				line_set(tmpl, r, intersect, ln->x1, ln->y1);
+			} else {
+				line_set(ln, r, intersect, ln->x1, ln->y1);
+				line_set(tmpl, ln->x0, ln->y0, r, intersect);
+			}
+			div_add_line(ln->div, tmpl);
 		}
-		if (splitY(&intersect, ln, t, l, r)) {
+		if (intersectY(&intersect, ln, t, l, r)) {
 			tmpl = wmalloc(sizeof(*tmpl));
-			tmpl->thick = oln->thick;
-			tmpl->color = oln->color;
+			tmpl->thick = ln->thick;
+			tmpl->color = ln->color;
 			if (ln->y0 < ln->y1) {
 				line_set(tmpl, ln->x0, ln->y0, intersect, t);
-				line_set(ln, ln->x1, ln->y1, intersect, t);
+				line_set(ln, intersect, t, ln->x1, ln->y1);
 			} else {
-				line_set(tmpl, ln->x1, ln->y1, intersect, t);
+				line_set(tmpl, intersect, t, ln->x1, ln->y1);
 				line_set(ln, ln->x0, ln->y0, intersect, t);
 			}
-			div_add_line(oln->div, tmpl);
+			div_add_line(ln->div, tmpl);
 		}
-		if (splitY(&intersect, ln, b, l, r)) {
+		if (intersectY(&intersect, ln, b, l, r)) {
 			tmpl = wmalloc(sizeof(*tmpl));
-			tmpl->thick = oln->thick;
-			tmpl->color = oln->color;
+			tmpl->thick = ln->thick;
+			tmpl->color = ln->color;
 			if (ln->y0 < ln->y1) {
-				line_set(tmpl, ln->x1, ln->y1, intersect, b);
+				line_set(tmpl, intersect, b, ln->x1, ln->y1);
 				line_set(ln, ln->x0, ln->y0, intersect, b);
 			} else {
 				line_set(tmpl, ln->x0, ln->y0, intersect, b);
-				line_set(ln, ln->x1, ln->y1, intersect, b);
+				line_set(ln, intersect, b, ln->x1, ln->y1);
 			}
-			div_add_line(oln->div, tmpl);
+			div_add_line(ln->div, tmpl);
 		}
 
 		/* free link */
-		list_del(oln->divlk);
+		list_del(ln->divlk);
 
-		nmp_free(_node(oln->divlk));
-		wfree(oln);
+		nmp_free(_node(ln->divlk));
+		wfree(ln);
 	}
 
 	nlist_clean(&lns);
@@ -439,90 +472,115 @@ wsheet_add_line(struct wsheet* wsh,
 	struct node*       n;
 	struct line*       l;
 	struct line*       tmpl;
-	int32_t	           v, intersect, i;
-	int32_t            vmin, vmax; /* value min/max */
+	int32_t	           v, i, ip; /* ip : Intersect Point */
+	int32_t            vstart, vend, vstep; /* value min/max */
 
 	list_init_link(&list);
 	list_init_link(&splits);
 
-	/*
-	 * NOTE :
-	 *     check it here??? ==> should be checked in java!!
-	 *     x0, y0 ... value should not be larger than LIMIT
-	 *	 of unsigned short!!!
-	 */
+	/* check invalid line data */
+	if (x0 == x1 && y0 == y1)
+		return;
+
 	l = wmalloc(sizeof(*l));
+	wassert(l);
 	line_set(l, x0, y0, x1, y1);
 	l->thick = thick;
 	l->color = color;
 
 	/* check horizontal - row - split */
-	if (y0 < y1) {
-		vmin = y0 / wsh->divH;
-		vmax = y1 / wsh->divH;
-	} else {
-		vmin = y1 / wsh->divH;
-		vmax = y0 / wsh->divH;
-	}
+	vstart = _divI(y0, wsh->divH);
+	vend   = _divI(y1, wsh->divH);
+	vstep  = (l->y0 < l->y1)? 1: -1;
 
-	for (i=vmin; i <= vmax; i++) {
-		v = (i + 1) * wsh->divH;
-		if (!_wsheet_splitY(wsh, &intersect, l, v)) {
-			nlist_add(&list, l);
-			break;
-		}
+	wassert((vstep > 0 && vstart <= vend) ||
+		(vstep < 0 && vstart >= vend));
+	for (i = vstart; i != vend + vstep; i += vstep) {
+		v = (vstep > 0)? (i + 1) * wsh->divH: i * wsh->divH - 1;
 
 		/* keep doing with remained one! */
 		tmpl = wmalloc(sizeof(*tmpl));
-		if (l->y0 < l->y1) {
-			line_set(tmpl, l->x0, l->y0, intersect, v);
-			line_set(l, intersect, v, l->x1, l->y1);
-		} else {
-			line_set(tmpl, l->x1, l->y1, intersect, v);
-			line_set(l, intersect, v, l->x0, l->y0);
-		}
+		wassert(tmpl);
 		tmpl->thick = thick;
 		tmpl->color = color;
-		nlist_add(&list, tmpl);
+		if (1 == intersectY(&ip, l, v, INT32_MIN, INT32_MAX)) {
+			line_set(tmpl, l->x0, l->y0, ip, v);
+			line_set(l, ip, v, l->x1, l->y1);
+		} else {
+			/*
+			 * parallel case should be handled
+			 *   with non-intersection case
+			 */
+			nlist_add(&list, l);
+			wfree(tmpl);
+			break; /* exit loop */
+		}
+
+		if (i >= 0 && i < wsh->rowN)
+			nlist_add(&list, tmpl);
+		else
+			wfree(tmpl);
 	}
 
 	/* check vertical - column - split */
 	list_foreach_item(n, &list, struct node, lk) {
 		l = n->v;
 
-		vmin = l->x0 / wsh->divW;
-		vmax = l->x1 / wsh->divW;
+		vstart = _divI(l->x0, wsh->divW);
+		vend   = _divI(l->x1, wsh->divW);
+		vstep  = (l->x0 < l->x1)? 1: -1;
 
-		for (i = vmin; i <= vmax; i++) {
-			v = (i + 1) * wsh->divW;
-			if (!_wsheet_splitX(wsh, &intersect, l, v)) {
-				nlist_add(&splits, l);
-				break;
-			}
+		wassert((vstep > 0 && vstart <= vend) ||
+			(vstep < 0 && vstart >= vend));
+		for (i = vstart; i != vend + vstep; i += vstep) {
+			v = (vstep > 0)?
+				(i + 1) * wsh->divW:
+				i * wsh->divW - 1;
 
+			/* keep doing with remained one! */
 			tmpl = wmalloc(sizeof(*tmpl));
+			wassert(tmpl);
 			tmpl->thick = thick;
 			tmpl->color = color;
-			line_set(tmpl, l->x0, l->y0, v, intersect);
-			nlist_add(&splits, tmpl);
-			line_set(l, v, intersect, l->x1, l->y1);
+			if (1 == intersectX(&ip, l, v, INT32_MIN, INT32_MAX)) {
+				line_set(tmpl, l->x0, l->y0, v, ip);
+				line_set(l, v, ip, l->x1, l->y1);
+			} else {
+				/*
+				 * parallel case should be handled
+				 *   with non-intersection case
+				 */
+				nlist_add(&splits, l);
+				wfree(tmpl);
+				break;
+			}
+			if (i >= 0 && i < wsh->colN)
+				nlist_add(&splits, tmpl);
+			else
+				wfree(tmpl);
 		}
 	}
 	nlist_clean(&list);
 
 	/* assign to division */
 	list_foreach_item(n, &splits, struct node, lk) {
-		div_add_line(_wsheet_div(wsh, n->v), n->v);
+		struct div* dv = _wsheet_div_line(wsh, n->v);
+		if (dv && !line_is_empty(n->v))
+			div_add_line(dv, n->v);
+		else
+			/* there is no div to add */
+			wfree(n->v); /* free line object */
 	}
 	nlist_clean(&splits);
 }
 
-void
+bool
 wsheet_add_obj(struct wsheet* wsh,
 	       uint16_t type, void* data,
 	       int32_t l, int32_t t, int32_t r, int32_t b) {
 	int32_t     i, j;
 	struct obj* o = wmalloc(sizeof(*o));
+	wassert(o);
 	rect_set(&o->extent, l, t, r, b);
 	o->ty = type;
 	o->ref = 0;
@@ -537,8 +595,11 @@ wsheet_add_obj(struct wsheet* wsh,
 	}
 
 	/* if obj is not added anywhere, destroy it! */
-	if (!o->ref)
+	if (!o->ref) {
 		wfree(o);
+		return false;
+	} else
+		return true;
 }
 
 void

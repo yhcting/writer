@@ -23,47 +23,63 @@
 #include "common.h"
 #include "g2d.h"
 
-bool
-g2d_splitX(int32_t* out_intersecty,
-	   int32_t x0, int32_t y0,
-	   int32_t x1, int32_t y1,
-	   int32_t x,
-	   int32_t yt, int32_t yb) {
-	if (x0 == x1)
-		return false;
-	else {
+int
+g2d_intersectX(int32_t* out_intersecty,
+	       int32_t x0, int32_t y0,
+	       int32_t x1, int32_t y1,
+	       int32_t x,
+	       int32_t yt, int32_t yb) {
+	wassert(yt < yb);
+	if (x0 == x1) {
+		/* parallel */
+		if (x0 == x &&
+		    ((yt <= y0 && yb > y0)
+		     || (yt < y1 && yb > y1)))
+			return 2;
+		else
+			return 0;
+	} else {
 		float s = (float)(x - x0) / (float)(x1 - x0);
-		if (0 < s && s < 1) {
+		if (0 <= s && s < 1) {
 			int32_t y =
 				_round_off(s * (float)(y1 - y0) + (float)y0);
-			if (yt >= y || y >= yb)
+			if ((x == x1 && y == y1)
+			    || yt >= y || y >= yb)
 				return 0;
 			*out_intersecty=y;
-			return true;
+			return 1;
 		} else
-			return false;
+			return 0;
 	}
 }
 
 
-bool
-g2d_splitY(int32_t* out_intersectx,
-	   int32_t x0, int32_t y0,
-	   int32_t x1, int32_t y1,
-	   int32_t y,
-	   int32_t xl, int32_t xr) {
-	if (y0 == y1)
-		return false;
-	else {
+int
+g2d_intersectY(int32_t* out_intersectx,
+	       int32_t x0, int32_t y0,
+	       int32_t x1, int32_t y1,
+	       int32_t y,
+	       int32_t xl, int32_t xr) {
+	wassert(xl < xr);
+	if (y0 == y1) {
+		/* parallel */
+		if (y0 == y &&
+		    ((xl <= x0 && xr > x0)
+		     || (xl < x1 && xr > x1)))
+			return 2;
+		else
+			return 0;
+	} else {
 		float s = (float)(y - y0) / (float)(y1 - y0);
-		if (0 < s && s < 1) {
+		if (0 <= s && s < 1) {
 			int32_t x =
 				_round_off(s * (float)(x1 - x0) + (float)x0);
-			if (xl >= x || x >= xr)
+			if ((y == y1 && x == x1)
+			    || xl >= x || x >= xr)
 				return 0;
 			*out_intersectx = x;
-			return true;
+			return 1;
 		} else
-			return false;
+			return 0;
 	}
 }

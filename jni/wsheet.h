@@ -21,6 +21,7 @@
 #ifndef _WSHEEt_h_
 #define _WSHEEt_h_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "gtype.h"
@@ -43,14 +44,19 @@ void
 wsheet_cutout_lines(struct wsheet* wsh,
 		    int32_t l, int32_t t, int32_t r, int32_t b);
 
+/**
+ * if line is out of sheet, it is discarded silently.
+ */
 void
 wsheet_add_line(struct wsheet* wsh,
 		int32_t x0, int32_t y0,
 		int32_t x1, int32_t y1,
 		uint8_t thick,
 		uint16_t color);
-
-void
+/**
+ * @return : false (object is out of sheet - not added.) otherwise true.
+ */
+bool
 wsheet_add_obj(struct wsheet* wsh,
 	       uint16_t type, void* data,
 	       int32_t l, int32_t t, int32_t r, int32_t b);
@@ -67,6 +73,8 @@ wsheet_del_obj(struct wsheet* wsh, struct obj* o);
  * returned line object should not be modified!!
  * out_keep : all list link should be preserved.
  * out_new : all list link should be deleted.
+ *
+ * 'r' and 'b' is open.
  */
 DECL_EXTERN_UT_ONLY(void
 wsheet_find_lines(const struct wsheet* wsh, struct list_link* out,
@@ -80,6 +88,9 @@ wsheet_clean(struct wsheet* wsh) {
 			div_clean(&wsh->divs[i][j]);
 }
 
+/*
+ * 'r' and 'b' is open
+ */
 void
 wsheet_draw(struct wsheet* wsh,
 	    int32_t* pixels,

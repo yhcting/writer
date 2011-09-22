@@ -29,11 +29,17 @@ copy_rect(int32_t* dst, const int32_t* src,
 	  int32_t sw, int32_t sh, int32_t sl, int32_t st,
 	  int32_t width, int32_t height);
 
+/*
+ * r and b is open
+ */
 void
 fill_rect(int32_t* pixels, int32_t w, int32_t h,
 	  int32_t color,
 	  int32_t l, int32_t t, int32_t r, int32_t b);
 
+/*
+ * (x1, y1) is open
+ */
 void
 draw_line(int32_t* pixels, int32_t w, int32_t h,
 	  int32_t color, uint8_t thick,
@@ -41,7 +47,7 @@ draw_line(int32_t* pixels, int32_t w, int32_t h,
 
 
 static inline int
-_rbg16to32(int16_t color) {
+_rbg16to32(uint16_t color) {
 	return 0xff000000
 		| ((color & 0xf800) << 8)
 		| ((color & 0x07e0) << 5)

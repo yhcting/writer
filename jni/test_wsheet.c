@@ -73,96 +73,261 @@ _test_add(struct wsheet* wsh) {
 	 ***************/
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, 2, 2, 1, 0);
-
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
-		);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
 
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W-1, 2, 0, 1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
-		);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 0, 2, _DIV_H-1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
-		);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W-1, _DIV_H-1, 0, 0, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
-		);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
 
+	/***************
+	 * line some/whole part is out of sheet.
+	 ***************/
+	wsheet_clean(wsh);
+	wsheet_add_line(wsh, -5, 1, 3, 1, 1, 0);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
+
+	wsheet_clean(wsh);
+	wsheet_add_line(wsh, -5, -3, 3, 2, 1, 0);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
+
+	wsheet_clean(wsh);
+	wsheet_add_line(wsh, -5, 1, -2, 1, 1, 0);
+	if (!(0 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
+
+	wsheet_clean(wsh);
+	wsheet_add_line(wsh, -1, 5, 5, -1, 1, 0);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
+
+	wsheet_clean(wsh);
+	wsheet_add_line(wsh, -1, 15, 5, -1, 1, 0);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 1 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
+
+	wsheet_clean(wsh);
+	wsheet_add_line(wsh, -1, 15, 25, -1, 1, 0);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 1 == list_size(&wsh->divs[0][1].lns)
+	      && 1 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
 
 	/***************
 	 * extends over two division
 	 ***************/
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, _DIV_W + 1, 2, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[0][2].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
-		);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 1 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[0][2].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[0][2].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W, 2, 1, 1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[2][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
-		);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[2][0].lns)
+	      && 1 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[2][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, 1, 1, _DIV_H + 1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 1 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
-		);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 1 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[1][1].lns)
+	      )) {
+		printf("(%d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns));
+		wassert(0);
+	}
 
 	wsheet_clean(wsh);
 	/* _DIV_W >= 2*_DIV_H */
 	wsheet_add_line(wsh, _DIV_W, _DIV_H, _DIV_W*2, _DIV_H*2, 1, 0);
-	wassert(0 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 1 == list_size(&wsh->divs[1][1].lns)
-		&& 0 == list_size(&wsh->divs[2][1].lns)
-		&& 0 == list_size(&wsh->divs[1][2].lns)
-		&& 0 == list_size(&wsh->divs[2][2].lns)
-		&& 0 == list_size(&wsh->divs[3][2].lns)
-		&& 0 == list_size(&wsh->divs[2][3].lns)
-		&& 0 == list_size(&wsh->divs[3][3].lns)
-		);
+	if (!(0 == list_size(&wsh->divs[0][0].lns)
+	      && 0 == list_size(&wsh->divs[0][1].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 1 == list_size(&wsh->divs[1][1].lns)
+	      && 0 == list_size(&wsh->divs[2][1].lns)
+	      && 0 == list_size(&wsh->divs[1][2].lns)
+	      && 0 == list_size(&wsh->divs[2][2].lns)
+	      && 0 == list_size(&wsh->divs[3][2].lns)
+	      && 0 == list_size(&wsh->divs[2][3].lns)
+	      && 0 == list_size(&wsh->divs[3][3].lns)
+	      )) {
+		printf("(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[1][1].lns),
+		       list_size(&wsh->divs[2][1].lns),
+		       list_size(&wsh->divs[1][2].lns),
+		       list_size(&wsh->divs[2][2].lns),
+		       list_size(&wsh->divs[3][2].lns),
+		       list_size(&wsh->divs[2][3].lns),
+		       list_size(&wsh->divs[3][3].lns));
+		wassert(0);
+	}
 
 	/***************
 	 * extends over three division
 	 ***************/
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W*2+1, 2, 1, 1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[0][1].lns)
-		&& 1 == list_size(&wsh->divs[0][2].lns)
-		&& 0 == list_size(&wsh->divs[0][3].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[2][0].lns)
-		&& 0 == list_size(&wsh->divs[3][0].lns)
-		);
+	if (!(1 == list_size(&wsh->divs[0][0].lns)
+	      && 1 == list_size(&wsh->divs[0][1].lns)
+	      && 1 == list_size(&wsh->divs[0][2].lns)
+	      && 0 == list_size(&wsh->divs[0][3].lns)
+	      && 0 == list_size(&wsh->divs[1][0].lns)
+	      && 0 == list_size(&wsh->divs[2][0].lns)
+	      && 0 == list_size(&wsh->divs[3][0].lns)
+	      )) {
+		printf("(%d, %d, %d, %d, %d, %d, %d)\n",
+		       list_size(&wsh->divs[0][0].lns),
+		       list_size(&wsh->divs[0][1].lns),
+		       list_size(&wsh->divs[0][2].lns),
+		       list_size(&wsh->divs[0][3].lns),
+		       list_size(&wsh->divs[1][0].lns),
+		       list_size(&wsh->divs[2][0].lns),
+		       list_size(&wsh->divs[3][0].lns));
+		wassert(0);
+	}
 	_line_sanity_check(wsh);
 
 

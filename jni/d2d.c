@@ -20,6 +20,7 @@
 
 #include "config.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
@@ -180,9 +181,11 @@ static void
 _draw_line(int32_t* pixels, int32_t w, int32_t h,
 	   int32_t color, int32_t thick,
 	   int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
+	bool    b01swap; /* (x0, y0) and (x1, y1) is swapped or not */
 	int32_t	tmp;
 	int8_t  steep;
 
+	b01swap = false;
 	steep = ABS(y1 - y0) > ABS(x1 - x0);
 	/* Check trivial case. */
 	if (steep){
@@ -192,6 +195,7 @@ _draw_line(int32_t* pixels, int32_t w, int32_t h,
 
 	/* sorting by x */
 	if (x0 > x1){
+		b01swap = true;
 		SWAP(x0, x1, tmp);
 		SWAP(y0, y1, tmp);
 	}
@@ -234,6 +238,13 @@ _draw_line(int32_t* pixels, int32_t w, int32_t h,
 
 		deltax *= 2;
 		deltay *= 2;
+
+		/* To handle this fact "(x1, y1) is open" */
+		if (b01swap)
+			x0++;
+		else
+			x1--;
+
 		if (steep) {
 			for (x = x0; x <= x1; x++) {
 				PLOT(y, x);

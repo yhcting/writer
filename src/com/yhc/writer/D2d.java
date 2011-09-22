@@ -43,7 +43,7 @@ class D2d {
 		_nativeDrawLine(pixels, w, h, color, thick, x0, y0, x1, y1);
 	}
 
-    //====== Natives ======
+	//====== Natives ======
 	private static native void _nativeFill(int[] pixels, int w, int h, int color,
 						int l, int t, int r, int b);
 	private static native void _nativeCopy(int[] dst, int[] src,

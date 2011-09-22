@@ -29,6 +29,9 @@
 #include "nmp.h"
 #include "listut.h"
 
+/*
+ * 'r' and 'b' is open
+ */
 void
 div_find_lines(const struct div* div,
 	       struct list_link* out,
