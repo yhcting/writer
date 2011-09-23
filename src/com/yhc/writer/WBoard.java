@@ -29,6 +29,7 @@
 package com.yhc.writer;
 
 import java.io.IOException;
+import java.util.LinkedList;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -98,6 +99,9 @@ class WBoard extends View {
 
 	// To secure memory space (to avoid continuous 'new' operation)
 	private final Rect	_tmpR		= new Rect();
+
+	// lines drawn between press and release
+	private LinkedList<G2d.Line> _lines	= new LinkedList<G2d.Line>();
 
 	/*******************************************
 	 * Pre-allocated object - to prevent too frequent allocation!! All
@@ -530,12 +534,19 @@ class WBoard extends View {
 	 * Sheet Interface
 	 */
 	void addLine(int x0, int y0, int x1, int y1, byte thick, int color) {
-		_sheet.add(_c2s(x0) + _ar.left,
-				_c2s(y0) + _ar.top,
-				_c2s(x1) + _ar.left,
-				_c2s(y1) + _ar.top,
-				thick,
-				color);
+		_lines.addLast(new G2d.Line(_c2s(x0) + _ar.left,
+					_c2s(y0) + _ar.top,
+					_c2s(x1) + _ar.left,
+					_c2s(y1) + _ar.top,
+					thick,
+					color));
+	}
+
+	void updateLines() {
+		if (!_lines.isEmpty()) {
+			_sheet.addLines(_lines);
+			_lines.clear();
+		}
 	}
 
 	void drawSheet(int left, int top, int right, int bottom) {

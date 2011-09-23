@@ -111,15 +111,16 @@ Java_com_yhc_writer_WSheet__1nativeCutout(JNIEnv* env, jclass jclazz,
 
 /*
  * Class:     com_yhc_writer_WSheet
- * Method:    _nativeAdd
- * Signature: (JIIIICS)V
+ * Method:    _nativeAddLine
+ * Signature: (JIIIIBSZ)V
  */
 JNIEXPORT void JNICALL
-Java_com_yhc_writer_WSheet__1nativeAdd(JNIEnv* env, jclass jclazz,
-				       jlong sheet,
-				       jint x0, jint y0,
-				       jint x1, jint y1,
-				       jbyte thick, jshort color) {
+Java_com_yhc_writer_WSheet__1nativeAddLine(JNIEnv* env, jclass jclazz,
+					   jlong sheet,
+					   jint x0, jint y0,
+					   jint x1, jint y1,
+					   jbyte thick, jshort color,
+					   jboolean bend) {
 	wsheet_add_line(jlong2ptr(sheet), x0, y0, x1, y1, thick, color);
 }
 

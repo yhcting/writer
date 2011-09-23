@@ -31,7 +31,6 @@ class WBStatePen implements WBStateI {
 	// UI values
 	private static final int	_AINR	= 3; // Action Index NR;
 
-
 	private WBoard		_board = null;
 	private byte		_thick = 4;
 	private int		_color = Color.BLACK; // black
@@ -138,6 +137,7 @@ class WBStatePen implements WBStateI {
 				_nr_downedpt = 0;
 			}
 			_valid_action = false;
+			_board.updateLines();
 		} break;
 
 		case MotionEvent.ACTION_MOVE: {
@@ -160,8 +160,10 @@ class WBStatePen implements WBStateI {
 				if (_x[0] == _px[0] && _y[0] == _py[0])
 					break; // Invalid 'Move'
 
-				_board.addLine(_px[0], _py[0], _x[0], _y[0], thick(), color());
-				_board.drawLine(_px[0], _py[0], _x[0], _y[0], thick(), color());
+				_board.addLine(_px[0], _py[0], _x[0], _y[0],
+						thick(), color());
+				_board.drawLine(_px[0], _py[0], _x[0], _y[0],
+						thick(), color());
 				_board.invalidateBoard(WUtil.min(_x[0], _px[0]),
 							WUtil.min(_y[0], _py[0]),
 							WUtil.max(_x[0], _px[0]),

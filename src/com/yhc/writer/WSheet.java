@@ -28,6 +28,8 @@
 package com.yhc.writer;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.ListIterator;
 
 import android.graphics.Rect;
 
@@ -84,10 +86,22 @@ class WSheet {
 		_nativeCutout(_native_sheet, l, t, r, b);
 	}
 
-	void add(int x0, int y0, int x1, int y1, byte thick, int color) {
+	// @bend : is this end of line sequence? : 0(false), 1(true)
+	void addLine(int x0, int y0, int x1, int y1, byte thick, int color, boolean bend) {
 		// TODO : change 8888 -> 565
 		WDev.wassert(thick < WConstants.LIMIT_THICK);
-		_nativeAdd(_native_sheet, x0, y0, x1, y1, thick, rgb32to16(color));
+		_nativeAddLine(_native_sheet, x0, y0, x1, y1,
+				thick, rgb32to16(color), bend);
+	}
+
+	void addLines(LinkedList<G2d.Line> lines) {
+		// TODO
+		ListIterator<G2d.Line> iter = lines.listIterator();
+		G2d.Line               l;
+		while (iter.hasNext()) {
+			l = iter.next();
+			addLine(l.x0, l.y0, l.x1, l.y1, l.thick, l.color, !iter.hasNext());
+		}
 	}
 
 	// this is for performance!!!
@@ -125,7 +139,8 @@ class WSheet {
 
 	private static native void _nativeCutout(long native_sheet, int l, int t, int r, int b);
 
-	private static native void _nativeAdd(long native_sheet, int x0, int y0, int x1, int y1, byte thick, short color);
+	private static native void _nativeAddLine(long native_sheet, int x0, int y0, int x1, int y1,
+							byte thick, short color, boolean bend);
 
 	private static native void _nativeDraw(long native_sheet, int[] pixels,
 						int w, int h, int ox, int oy,
