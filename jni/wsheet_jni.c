@@ -119,8 +119,7 @@ Java_com_yhc_writer_WSheet__1nativeAddLine(JNIEnv* env, jclass jclazz,
 					   jlong sheet,
 					   jint x0, jint y0,
 					   jint x1, jint y1,
-					   jbyte thick, jshort color,
-					   jboolean bend) {
+					   jbyte thick, jshort color) {
 	wsheet_add_line(jlong2ptr(sheet), x0, y0, x1, y1, thick, color);
 }
 
