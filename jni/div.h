@@ -59,9 +59,20 @@ div_init(struct div* div,
 
 static inline void
 div_add_line(struct div* div, struct line* ln) {
+	struct node* n = nlist_alloc_node(ln);
+	wassert(n);
 	ln->div = div;
-	nlist_add(&div->lns, ln);
-	ln->divlk = div->lns._prev;
+	ln->divlk = &n->lk;
+	list_add_last(&div->lns, &n->lk);
+}
+
+static inline void
+div_add_line_prev(struct node* node, struct line* ln) {
+	struct node* n = nlist_alloc_node(ln);
+	wassert(n && ((struct line*)node->v)->div);
+	ln->div = ((struct line*)node->v)->div;
+	ln->divlk = &n->lk;
+	list_add_prev(&node->lk, &n->lk);
 }
 
 #endif /* _DIv_h_ */

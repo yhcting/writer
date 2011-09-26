@@ -408,7 +408,14 @@ wsheet_cutout_lines(struct wsheet* wsh,
 				line_set(tmpl, l, intersect, ln->x1, ln->y1);
 				line_set(ln, ln->x0, ln->y0, l, intersect);
 			}
-			div_add_line(ln->div, tmpl);
+			/*
+			 * order of lines also should be preserved
+			 *   at division!
+			 */
+			div_add_line_prev(container_of(ln->divlk,
+						       struct node,
+						       lk),
+					  tmpl);
 		}
 		if (intersectX(&intersect, ln, r, t, b)) {
 			tmpl = wmalloc(sizeof(*tmpl));
@@ -421,7 +428,14 @@ wsheet_cutout_lines(struct wsheet* wsh,
 				line_set(ln, r, intersect, ln->x1, ln->y1);
 				line_set(tmpl, ln->x0, ln->y0, r, intersect);
 			}
-			div_add_line(ln->div, tmpl);
+			/*
+			 * order of lines also should be preserved
+			 *   at division!
+			 */
+			div_add_line_prev(container_of(ln->divlk,
+						       struct node,
+						       lk),
+					  tmpl);
 		}
 		if (intersectY(&intersect, ln, t, l, r)) {
 			tmpl = wmalloc(sizeof(*tmpl));
@@ -434,7 +448,14 @@ wsheet_cutout_lines(struct wsheet* wsh,
 				line_set(tmpl, intersect, t, ln->x1, ln->y1);
 				line_set(ln, ln->x0, ln->y0, intersect, t);
 			}
-			div_add_line(ln->div, tmpl);
+			/*
+			 * order of lines also should be preserved
+			 *   at division!
+			 */
+			div_add_line_prev(container_of(ln->divlk,
+						       struct node,
+						       lk),
+					  tmpl);
 		}
 		if (intersectY(&intersect, ln, b, l, r)) {
 			tmpl = wmalloc(sizeof(*tmpl));
@@ -447,7 +468,14 @@ wsheet_cutout_lines(struct wsheet* wsh,
 				line_set(tmpl, ln->x0, ln->y0, intersect, b);
 				line_set(ln, intersect, b, ln->x1, ln->y1);
 			}
-			div_add_line(ln->div, tmpl);
+			/*
+			 * order of lines also should be preserved
+			 *   at division!
+			 */
+			div_add_line_prev(container_of(ln->divlk,
+						       struct node,
+						       lk),
+					  tmpl);
 		}
 
 		/* free link */

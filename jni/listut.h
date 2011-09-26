@@ -41,14 +41,23 @@ nlist_clean(struct list_link* head) {
 	list_init_link(head);
 }
 
+static inline struct node*
+nlist_alloc_node(void* v)
+	__attribute__((unused));
+static inline struct node*
+nlist_alloc_node(void* v) {
+	struct node* n;
+	n = nmp_alloc();
+	n->v = v;
+	return n;
+}
+
 static inline void
 nlist_add(struct list_link* head, void* v)
 	__attribute__((unused));
 static inline void
 nlist_add(struct list_link* head, void* v) {
-	struct node* n;
-	n = nmp_alloc();
-	n->v = v;
+	struct node* n = nlist_alloc_node(v);
 	list_add_last(head, &n->lk);
 }
 
