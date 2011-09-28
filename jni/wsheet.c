@@ -422,11 +422,11 @@ wsheet_cutout_lines(struct wsheet* wsh,
 			tmpl->thick = ln->thick;
 			tmpl->color = ln->color;
 			if (ln->x0 < ln->x1) {
-				line_set(ln, ln->x0, ln->y0, r, intersect);
 				line_set(tmpl, r, intersect, ln->x1, ln->y1);
+				line_set(ln, ln->x0, ln->y0, r, intersect);
 			} else {
-				line_set(ln, r, intersect, ln->x1, ln->y1);
 				line_set(tmpl, ln->x0, ln->y0, r, intersect);
+				line_set(ln, r, intersect, ln->x1, ln->y1);
 			}
 			/*
 			 * order of lines also should be preserved
