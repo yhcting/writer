@@ -18,32 +18,38 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-#include "config.h"
+#ifndef _HISTORy_h_
+#define _HISTORy_h_
 
-#ifdef CONFIG_TEST_EXECUTABLE
+#include <stdint.h>
 
-#include <assert.h>
+/*
+ * All are not-locked!
+ * So, NOT mt-safe
+ */
 
-#include "common.h"
-#include "g2d.h"
+/*
+ * initialize history structure
+ */
+void
+his_init(void);
 
-static int
-_test_g2d(void) {
-	int32_t out;
+void
+his_deinit(void);
 
-	wassert(1 == g2d_intersectX(&out, 1, 1, 5, 1, 1, 0, 5));
-	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 1, 5, 0, 5));
-	wassert(2 == g2d_intersectY(&out, 1, 1, 5, 1, 1, 0, 5));
-	wassert(0 == g2d_intersectY(&out, 1, 1, 5, 1, 0, 0, 5));
-	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 3, 0, 0, 5));
-	wassert(1 == g2d_intersectX(&out, 1, 1, 5, 3, 2, 0, 5));
-	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 3, 5, 0, 3));
-	wassert(0 == g2d_intersectY(&out, 1, 1, 5, 3, 3, 0, 6));
-	wassert(1 == g2d_intersectY(&out, 1, 1, 5, 3, 2, 0, 6));
+void
+his_add(struct ucmd*);
 
-	return 0;
-}
+void
+his_undo(void);
 
-TESTFN(_test_g2d, G2D, TESTPRI_FUNCTION)
+void
+his_redo(void);
 
-#endif /* CONFIG_TEST_EXECUTABLE */
+int32_t
+his_sz(void);
+
+int32_t
+his_undosz(void);
+
+#endif /* _HISTORy_h_ */

@@ -39,4 +39,6 @@ class WConstants {
 	// zoom out value!!!
 	static final float ZOOM_MIN_VALUE	= 1;
 	static final float ZOOM_MAX_VALUE	= 4; // 400 % zoom out - min is 100%(original size)
+
+	static final int INVALID_COORD_VALUE    = 0x7fffffff;
 }

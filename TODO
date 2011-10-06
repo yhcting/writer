@@ -1,0 +1,16 @@
+Memory
+------
++ Optimization for memory usage.
++ Handling OOM(Out Of Memory)
+
+
+Refactoring
+-----------
++ SMP Optimization
+    This should be done based on current host system at runtime.
+    (At this version, done at compile time with configuration)
+
++ Code beautify for SMP optimization.
+    Code is not well-structured for SMP optimization.
+    Makeing simple framework to use SMP optimzation may be needed??
+

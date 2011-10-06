@@ -30,6 +30,7 @@ package com.yhc.writer;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.ListIterator;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -101,7 +102,7 @@ class WBoard extends View {
 	private final Rect	_tmpR		= new Rect();
 
 	// lines drawn between press and release
-	private LinkedList<G2d.Line> _lines	= new LinkedList<G2d.Line>();
+	private LinkedList<G2d.Point> _points	= new LinkedList<G2d.Point>();
 
 	/*******************************************
 	 * Pre-allocated object - to prevent too frequent allocation!! All
@@ -533,19 +534,25 @@ class WBoard extends View {
 	/*
 	 * Sheet Interface
 	 */
-	void addLine(int x0, int y0, int x1, int y1, byte thick, int color) {
-		_lines.addLast(new G2d.Line(_c2s(x0) + _ar.left,
-					_c2s(y0) + _ar.top,
-					_c2s(x1) + _ar.left,
-					_c2s(y1) + _ar.top,
-					thick,
-					color));
+	void addPoint(int x, int y) {
+		_points.addLast(new G2d.Point(_c2s(x) + _ar.left, _c2s(y) + _ar.top));
+
 	}
 
-	void updateLines() {
-		if (!_lines.isEmpty()) {
-			_sheet.addLines(_lines);
-			_lines.clear();
+	void updateCurve(LinkedList<G2d.Point> points, byte thick, int color) {
+		if (!_points.isEmpty()) {
+			// Change from board coordinate to sheet coordinate
+			ListIterator<G2d.Point> iter = points.listIterator();
+			G2d.Point               pt;
+			while (iter.hasNext()) {
+				pt = iter.next();
+				pt.x = _c2s(pt.x) + _ar.left;
+				pt.y = _c2s(pt.y) + _ar.top;
+			}
+
+			// TODO!!!! ---
+			_sheet.addCurve(_points, thick, color);
+			_points.clear();
 		}
 	}
 

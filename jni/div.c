@@ -25,30 +25,32 @@
 #include "common.h"
 #include "gtype.h"
 #include "g2d.h"
-#include "listut.h"
+#include "list.h"
 #include "div.h"
 
 /********************************
  * Functions for div
  ********************************/
-static void
-_del_line_node(struct div* div, struct node* n) {
-	wassert(&n->lk != &div->objs);
-	if (&n->lk == &div->objs)
-		return;
 
-	wfree(n->v);
-	nlist_del(n);
+/*
+ * del node with deep free.
+ */
+static void
+_del_line_node_deep(struct div* div, struct node* n) {
+	wassert(&n->lk != &div->lns);
+	if (&n->lk == &div->lns)
+		return;
+	node_free_deep(n);
 }
 
 static void
-_del_obj_node(struct div* div, struct node* n) {
-	struct obj* o = n->v;
+_del_obj_node_deep(struct div* div, struct node* n) {
+	struct obj* o;
 	wassert(&n->lk != &div->objs);
 	if (&n->lk == &div->objs)
 		return;
 
-	nlist_del(n);
+	o = node_free(n);
 	o->ref--;
 
 	/*
@@ -64,11 +66,16 @@ void
 div_clean(struct div* div) {
 	struct node *n, *tmp;
 	/* clean lines */
-	list_foreach_item_removal_safe(n, tmp,  &div->lns, struct node, lk)
-		_del_line_node(div, n);
+	list_foreach_item_removal_safe(n, tmp, &div->lns, struct node, lk)
+		_del_line_node_deep(div, n);
+
+	list_init_link(&div->lns);
+
 
 	list_foreach_item_removal_safe(n, tmp, &div->objs, struct node, lk)
-		_del_obj_node(div, n);
+		_del_obj_node_deep(div, n);
+
+	list_init_link(&div->objs);
 }
 
 void
@@ -143,5 +150,5 @@ div_del_obj(struct div* div, struct obj* o) {
 		if (n->v == o)
 			break;
 
-	_del_obj_node(div, n);
+	_del_obj_node_deep(div, n);
 }

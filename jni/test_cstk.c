@@ -22,28 +22,63 @@
 
 #ifdef CONFIG_TEST_EXECUTABLE
 
+#include <stdio.h>
 #include <assert.h>
 
-#include "common.h"
-#include "g2d.h"
+#include "cstack.h"
+
+#define _TESTBITSZ 2
+#define _TESTSZ    4 /* 2^2 */
 
 static int
-_test_g2d(void) {
-	int32_t out;
+_test_cstack(void) {
+	struct cstk* s = cstk_create(_TESTBITSZ, NULL);
+	int          i;
+	int*         p;
 
-	wassert(1 == g2d_intersectX(&out, 1, 1, 5, 1, 1, 0, 5));
-	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 1, 5, 0, 5));
-	wassert(2 == g2d_intersectY(&out, 1, 1, 5, 1, 1, 0, 5));
-	wassert(0 == g2d_intersectY(&out, 1, 1, 5, 1, 0, 0, 5));
-	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 3, 0, 0, 5));
-	wassert(1 == g2d_intersectX(&out, 1, 1, 5, 3, 2, 0, 5));
-	wassert(0 == g2d_intersectX(&out, 1, 1, 5, 3, 5, 0, 3));
-	wassert(0 == g2d_intersectY(&out, 1, 1, 5, 3, 3, 0, 6));
-	wassert(1 == g2d_intersectY(&out, 1, 1, 5, 3, 2, 0, 6));
+	wassert(cstk_is_empty(s) && !cstk_is_full(s));
+
+	p = wmalloc(sizeof *p);
+	*p = 1;
+	cstk_push(s, p);
+	wassert(!cstk_is_empty(s) && !cstk_is_full(s));
+
+	p = cstk_pop(s);
+	wassert((1 == *p)
+		&& cstk_is_empty(s) && !cstk_is_full(s));
+	wfree(p);
+
+	for (i = 0; i < _TESTSZ + 2; i++) {
+		p = wmalloc(sizeof *p);
+		*p = i;
+		cstk_push(s, p);
+	}
+	wassert(!cstk_is_empty(s) && cstk_is_full(s));
+	/* cstk_dump(s); */
+
+	p = cstk_pop(s);
+	wassert((_TESTSZ + 1) == *p);
+	wfree(p);
+	/* cstk_dump(s); */
+
+	p = cstk_pop(s);
+	wassert(_TESTSZ == *p);
+	wfree(p);
+	/* cstk_dump(s); */
+
+	p = cstk_pop(s);
+	wassert(3 == *p);
+	wfree(p);
+	/* cstk_dump(s); */
+
+	cstk_destroy(s);
 
 	return 0;
 }
 
-TESTFN(_test_g2d, G2D, TESTPRI_FUNCTION)
+#undef _TESTSZ
+
+TESTFN(_test_cstack, CSTACK, TESTPRI_MODULE)
+
 
 #endif /* CONFIG_TEST_EXECUTABLE */

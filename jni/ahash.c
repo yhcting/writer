@@ -27,7 +27,7 @@
 #include "list.h"
 
 #define _MAX_HBITS 32
-#define _MIN_HBITS 4
+#define _MIN_HBITS 8
 
 /* hash node */
 struct _hn {
@@ -199,6 +199,9 @@ ahash_del(struct ahash* h, void* p) {
 	return h;
 }
 
+/*
+ * @return true if p is in hash, false otherwise
+ */
 bool
 ahash_check(const struct ahash* h, void* p) {
 	struct _hn* n = _hfind(h, (uintptr_t)p);

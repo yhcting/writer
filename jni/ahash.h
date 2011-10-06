@@ -37,9 +37,9 @@ struct ahash*
 ahash_add(struct ahash* h, void* p);
 
 struct ahash*
-ahash_del(struct yahash* h, void* p);
+ahash_del(struct ahash* h, void* p);
 
 bool
-ahash_check(const struct yahash* h, void* p);
+ahash_check(const struct ahash* h, void* p);
 
 #endif /* _AHASh_h_ */

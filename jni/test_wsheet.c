@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+
 static const int32_t    _DIV_W  = 20;
 static const int32_t    _DIV_H  = 10;
 static const int32_t    _COL_N  = 10;
@@ -58,8 +59,10 @@ _line_sanity_check(struct wsheet* wsh) {
 			maxy / wsh->divH - 1:
 			maxy / wsh->divH;
 	}
-	nlist_clean(&lout);
+	nlist_free(&lout);
 }
+
+#define _divlsz(r, c)  list_size(&wsh->divs[r][c].lns)
 
 static int
 _test_add(struct wsheet* wsh) {
@@ -73,62 +76,62 @@ _test_add(struct wsheet* wsh) {
 	 ***************/
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, 2, 2, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W-1, 2, 0, 1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 0, 2, _DIV_H-1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W-1, _DIV_H-1, 0, 0, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
@@ -137,91 +140,91 @@ _test_add(struct wsheet* wsh) {
 	 ***************/
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, -5, 1, 3, 1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, -5, -3, 3, 2, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, -5, 1, -2, 1, 1, 0);
-	if (!(0 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(0 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, -1, 5, 5, -1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, -1, 15, 5, -1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 1 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 1 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, -1, 15, 25, -1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 1 == list_size(&wsh->divs[0][1].lns)
-	      && 1 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 1 == _divlsz(0, 1)
+	      && 1 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
@@ -230,78 +233,78 @@ _test_add(struct wsheet* wsh) {
 	 ***************/
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, _DIV_W + 1, 2, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 1 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[0][2].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 1 == _divlsz(0, 1)
+	      && 0 == _divlsz(0, 2)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[0][2].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(0, 2),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W, 2, 1, 1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[2][0].lns)
-	      && 1 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(2, 0)
+	      && 1 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[2][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(1, 0),
+		       _divlsz(2, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, 1, 1, _DIV_H + 1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 1 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[1][1].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 1 == _divlsz(1, 0)
+	      && 0 == _divlsz(1, 1)
 	      )) {
 		printf("(%d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1));
 		wassert(0);
 	}
 
 	wsheet_clean(wsh);
 	/* _DIV_W >= 2*_DIV_H */
 	wsheet_add_line(wsh, _DIV_W, _DIV_H, _DIV_W*2, _DIV_H*2, 1, 0);
-	if (!(0 == list_size(&wsh->divs[0][0].lns)
-	      && 0 == list_size(&wsh->divs[0][1].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 1 == list_size(&wsh->divs[1][1].lns)
-	      && 0 == list_size(&wsh->divs[2][1].lns)
-	      && 0 == list_size(&wsh->divs[1][2].lns)
-	      && 0 == list_size(&wsh->divs[2][2].lns)
-	      && 0 == list_size(&wsh->divs[3][2].lns)
-	      && 0 == list_size(&wsh->divs[2][3].lns)
-	      && 0 == list_size(&wsh->divs[3][3].lns)
+	if (!(0 == _divlsz(0, 0)
+	      && 0 == _divlsz(0, 1)
+	      && 0 == _divlsz(1, 0)
+	      && 1 == _divlsz(1, 1)
+	      && 0 == _divlsz(2, 1)
+	      && 0 == _divlsz(1, 2)
+	      && 0 == _divlsz(2, 2)
+	      && 0 == _divlsz(3, 2)
+	      && 0 == _divlsz(2, 3)
+	      && 0 == _divlsz(3, 3)
 	      )) {
 		printf("(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[1][1].lns),
-		       list_size(&wsh->divs[2][1].lns),
-		       list_size(&wsh->divs[1][2].lns),
-		       list_size(&wsh->divs[2][2].lns),
-		       list_size(&wsh->divs[3][2].lns),
-		       list_size(&wsh->divs[2][3].lns),
-		       list_size(&wsh->divs[3][3].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(1, 0),
+		       _divlsz(1, 1),
+		       _divlsz(2, 1),
+		       _divlsz(1, 2),
+		       _divlsz(2, 2),
+		       _divlsz(3, 2),
+		       _divlsz(2, 3),
+		       _divlsz(3, 3));
 		wassert(0);
 	}
 
@@ -310,22 +313,22 @@ _test_add(struct wsheet* wsh) {
 	 ***************/
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W*2+1, 2, 1, 1, 1, 0);
-	if (!(1 == list_size(&wsh->divs[0][0].lns)
-	      && 1 == list_size(&wsh->divs[0][1].lns)
-	      && 1 == list_size(&wsh->divs[0][2].lns)
-	      && 0 == list_size(&wsh->divs[0][3].lns)
-	      && 0 == list_size(&wsh->divs[1][0].lns)
-	      && 0 == list_size(&wsh->divs[2][0].lns)
-	      && 0 == list_size(&wsh->divs[3][0].lns)
+	if (!(1 == _divlsz(0, 0)
+	      && 1 == _divlsz(0, 1)
+	      && 1 == _divlsz(0, 2)
+	      && 0 == _divlsz(0, 3)
+	      && 0 == _divlsz(1, 0)
+	      && 0 == _divlsz(2, 0)
+	      && 0 == _divlsz(3, 0)
 	      )) {
 		printf("(%d, %d, %d, %d, %d, %d, %d)\n",
-		       list_size(&wsh->divs[0][0].lns),
-		       list_size(&wsh->divs[0][1].lns),
-		       list_size(&wsh->divs[0][2].lns),
-		       list_size(&wsh->divs[0][3].lns),
-		       list_size(&wsh->divs[1][0].lns),
-		       list_size(&wsh->divs[2][0].lns),
-		       list_size(&wsh->divs[3][0].lns));
+		       _divlsz(0, 0),
+		       _divlsz(0, 1),
+		       _divlsz(0, 2),
+		       _divlsz(0, 3),
+		       _divlsz(1, 0),
+		       _divlsz(2, 0),
+		       _divlsz(3, 0));
 		wassert(0);
 	}
 	_line_sanity_check(wsh);
@@ -334,31 +337,31 @@ _test_add(struct wsheet* wsh) {
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, _DIV_H*2+1, 1, 1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[0][2].lns)
-		&& 0 == list_size(&wsh->divs[0][3].lns)
-		&& 1 == list_size(&wsh->divs[1][0].lns)
-		&& 1 == list_size(&wsh->divs[2][0].lns)
-		&& 0 == list_size(&wsh->divs[3][0].lns)
+	wassert(1 == _divlsz(0, 0)
+		&& 0 == _divlsz(0, 1)
+		&& 0 == _divlsz(0, 2)
+		&& 0 == _divlsz(0, 3)
+		&& 1 == _divlsz(1, 0)
+		&& 1 == _divlsz(2, 0)
+		&& 0 == _divlsz(3, 0)
 		);
 	_line_sanity_check(wsh);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W-1, 1, _DIV_W*2-1, _DIV_H+1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 1 == list_size(&wsh->divs[1][1].lns)
+	wassert(1 == _divlsz(0, 0)
+		&& 1 == _divlsz(0, 1)
+		&& 0 == _divlsz(1, 0)
+		&& 1 == _divlsz(1, 1)
 		);
 	_line_sanity_check(wsh);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, _DIV_H-1, _DIV_W+1, _DIV_H+1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 1 == list_size(&wsh->divs[1][0].lns)
-		&& 1 == list_size(&wsh->divs[1][1].lns)
+	wassert(1 == _divlsz(0, 0)
+		&& 0 == _divlsz(0, 1)
+		&& 1 == _divlsz(1, 0)
+		&& 1 == _divlsz(1, 1)
 		);
 	_line_sanity_check(wsh);
 
@@ -367,58 +370,58 @@ _test_add(struct wsheet* wsh) {
 	 ***************/
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, _DIV_H-1, _DIV_W*3+1, _DIV_H*2+1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[0][2].lns)
-		&& 0 == list_size(&wsh->divs[0][3].lns)
-		&& 1 == list_size(&wsh->divs[1][0].lns)
-		&& 1 == list_size(&wsh->divs[1][1].lns)
-		&& 1 == list_size(&wsh->divs[1][2].lns)
-		&& 0 == list_size(&wsh->divs[1][3].lns)
-		&& 0 == list_size(&wsh->divs[2][0].lns)
-		&& 0 == list_size(&wsh->divs[2][1].lns)
-		&& 1 == list_size(&wsh->divs[2][2].lns)
-		&& 1 == list_size(&wsh->divs[2][3].lns)
-		&& 0 == list_size(&wsh->divs[3][0].lns)
-		&& 0 == list_size(&wsh->divs[3][1].lns)
-		&& 0 == list_size(&wsh->divs[3][2].lns)
-		&& 0 == list_size(&wsh->divs[3][3].lns)
+	wassert(1 == _divlsz(0, 0)
+		&& 0 == _divlsz(0, 1)
+		&& 0 == _divlsz(0, 2)
+		&& 0 == _divlsz(0, 3)
+		&& 1 == _divlsz(1, 0)
+		&& 1 == _divlsz(1, 1)
+		&& 1 == _divlsz(1, 2)
+		&& 0 == _divlsz(1, 3)
+		&& 0 == _divlsz(2, 0)
+		&& 0 == _divlsz(2, 1)
+		&& 1 == _divlsz(2, 2)
+		&& 1 == _divlsz(2, 3)
+		&& 0 == _divlsz(3, 0)
+		&& 0 == _divlsz(3, 1)
+		&& 0 == _divlsz(3, 2)
+		&& 0 == _divlsz(3, 3)
 		);
 	_line_sanity_check(wsh);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W-1, 1, _DIV_W*2+1, _DIV_H*6-1, 1, 0);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[2][0].lns)
-		&& 1 == list_size(&wsh->divs[0][1].lns)
-		&& 1 == list_size(&wsh->divs[1][1].lns)
-		&& 1 == list_size(&wsh->divs[2][1].lns)
-		&& 1 == list_size(&wsh->divs[3][1].lns)
-		&& 1 == list_size(&wsh->divs[4][1].lns)
-		&& 1 == list_size(&wsh->divs[5][1].lns)
-		&& 0 == list_size(&wsh->divs[6][1].lns)
-		&& 0 == list_size(&wsh->divs[0][2].lns)
-		&& 0 == list_size(&wsh->divs[1][2].lns)
-		&& 0 == list_size(&wsh->divs[3][2].lns)
-		&& 0 == list_size(&wsh->divs[4][2].lns)
-		&& 1 == list_size(&wsh->divs[5][2].lns)
+	wassert(1 == _divlsz(0, 0)
+		&& 0 == _divlsz(1, 0)
+		&& 0 == _divlsz(2, 0)
+		&& 1 == _divlsz(0, 1)
+		&& 1 == _divlsz(1, 1)
+		&& 1 == _divlsz(2, 1)
+		&& 1 == _divlsz(3, 1)
+		&& 1 == _divlsz(4, 1)
+		&& 1 == _divlsz(5, 1)
+		&& 0 == _divlsz(6, 1)
+		&& 0 == _divlsz(0, 2)
+		&& 0 == _divlsz(1, 2)
+		&& 0 == _divlsz(3, 2)
+		&& 0 == _divlsz(4, 2)
+		&& 1 == _divlsz(5, 2)
 		);
 	_line_sanity_check(wsh);
 
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, _DIV_H*4-1, _DIV_W*2+1, 1, 1, 0);
-	wassert(0 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[3][0].lns)
-		&& 1 == list_size(&wsh->divs[2][0].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[3][1].lns)
-		&& 1 == list_size(&wsh->divs[2][1].lns)
-		&& 1 == list_size(&wsh->divs[1][1].lns)
-		&& 1 == list_size(&wsh->divs[0][1].lns)
-		&& 1 == list_size(&wsh->divs[0][2].lns)
-		&& 0 == list_size(&wsh->divs[1][2].lns)
+	wassert(0 == _divlsz(0, 0)
+		&& 1 == _divlsz(3, 0)
+		&& 1 == _divlsz(2, 0)
+		&& 0 == _divlsz(1, 0)
+		&& 0 == _divlsz(3, 1)
+		&& 1 == _divlsz(2, 1)
+		&& 1 == _divlsz(1, 1)
+		&& 1 == _divlsz(0, 1)
+		&& 1 == _divlsz(0, 2)
+		&& 0 == _divlsz(1, 2)
 		);
 	_line_sanity_check(wsh);
 
@@ -442,27 +445,27 @@ _test_find_lines(struct wsheet* wsh) {
 	wsheet_find_lines(wsh, &lns, 0, 0, 1, 1);
 	wassert(0 == list_size(&lns));
 
-	nlist_clean(&lns);
+	nlist_free(&lns);
 	wsheet_find_lines(wsh, &lns, 0, 0, 2, 2);
 	wassert(1 == list_size(&lns));
 
-	nlist_clean(&lns);
+	nlist_free(&lns);
 	wsheet_find_lines(wsh, &lns, 0, 0, 4, 4);
 	wassert(2 == list_size(&lns));
 
-	nlist_clean(&lns);
+	nlist_free(&lns);
 	wsheet_find_lines(wsh, &lns, 1, 1, 2, 2);
 	wassert(1 == list_size(&lns));
 
-	nlist_clean(&lns);
+	nlist_free(&lns);
 	wsheet_find_lines(wsh, &lns, 2, 2, 4, 4);
 	wassert(1 == list_size(&lns));
 
-	nlist_clean(&lns);
+	nlist_free(&lns);
 	wsheet_find_lines(wsh, &lns, 3, 0, 4, _DIV_H);
 	wassert(3 == list_size(&lns));
 
-	nlist_clean(&lns);
+	nlist_free(&lns);
 
 	printf("passed\n");
 	return 0;
@@ -475,128 +478,130 @@ _test_cutout_lines(struct wsheet* wsh) {
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, 3, 3, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W, _DIV_H);
-	wassert(0 == list_size(&wsh->divs[0][0].lns));
+	wassert(0 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 0, 0, 1, 1, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W, _DIV_H);
-	wassert(0 == list_size(&wsh->divs[0][0].lns));
+	wassert(0 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 3, 3, _DIV_W, _DIV_H, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W, _DIV_H);
-	wassert(0 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
+	wassert(0 == _divlsz(0, 0)
+		&& 0 == _divlsz(0, 1)
+		&& 0 == _divlsz(1, 0)
+		&& 0 == _divlsz(1, 1)
 		);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, _DIV_H, _DIV_W-1, _DIV_H, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W, _DIV_H);
-	wassert(0 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[1][0].lns)
+	wassert(0 == _divlsz(0, 0)
+		&& 1 == _divlsz(1, 0)
 		);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W, 1, _DIV_W, _DIV_H-1, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W, _DIV_H);
-	wassert(0 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[0][1].lns)
+	wassert(0 == _divlsz(0, 0)
+		&& 1 == _divlsz(0, 1)
 		);
 
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, _DIV_W, _DIV_H, 1, 0);
 	wsheet_cutout_lines(wsh, 1, 1, _DIV_W, _DIV_H);
-	wassert(0 == list_size(&wsh->divs[0][0].lns)
-		&& 0 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
+	wassert(0 == _divlsz(0, 0)
+		&& 0 == _divlsz(0, 1)
+		&& 0 == _divlsz(1, 0)
+		&& 0 == _divlsz(1, 1)
 		);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, _DIV_W-2, 1, 1, 0);
 	wsheet_cutout_lines(wsh, 2, 0, _DIV_W-1, 3);
-	wassert(1 == list_size(&wsh->divs[0][0].lns));
+	wassert(1 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, 1, _DIV_W-1, 1, 1, 0);
 	wsheet_cutout_lines(wsh, 1, 0, _DIV_W-2, 3);
-	wassert(1 == list_size(&wsh->divs[0][0].lns));
+	wassert(1 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, _DIV_W-1, 1, 1, 0);
 	wsheet_cutout_lines(wsh, 2, 0, _DIV_W-2, 3);
-	wassert(2 == list_size(&wsh->divs[0][0].lns));
+	wassert(2 == _divlsz(0, 0));
 
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, 1, _DIV_H-2, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 2, 3, _DIV_H-1);
-	wassert(1 == list_size(&wsh->divs[0][0].lns));
+	wassert(1 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 2, 1, _DIV_H-1, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 1, 3, _DIV_H-2);
-	wassert(1 == list_size(&wsh->divs[0][0].lns));
+	wassert(1 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, 1, _DIV_H-1, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 2, 3, _DIV_H-2);
-	wassert(2 == list_size(&wsh->divs[0][0].lns));
+	wassert(2 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, 2, _DIV_W-2, _DIV_H-2, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W-4, _DIV_H-3);
-	wassert(1 == list_size(&wsh->divs[0][0].lns));
+	wassert(1 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, 2, _DIV_W-2, _DIV_H-2, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W-1, _DIV_H-3);
-	wassert(1 == list_size(&wsh->divs[0][0].lns));
+	wassert(1 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, 2, _DIV_W-2, _DIV_H-2, 1, 0);
 	wsheet_cutout_lines(wsh, 3, 3, _DIV_W-3, _DIV_H-3);
-	wassert(2 == list_size(&wsh->divs[0][0].lns));
+	wassert(2 == _divlsz(0, 0));
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, 2, _DIV_W*2-2, 3, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W*2-4, _DIV_H*2-3);
-	wassert(0 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[0][2].lns)
+	wassert(0 == _divlsz(0, 0)
+		&& 1 == _divlsz(0, 1)
+		&& 0 == _divlsz(0, 2)
 		);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 2, 2, 3, _DIV_H*2-2, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W-1, _DIV_H*2-3);
-	wassert(0 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[1][0].lns)
+	wassert(0 == _divlsz(0, 0)
+		&& 1 == _divlsz(1, 0)
 		);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, _DIV_W-1, 1, _DIV_W*2+2, _DIV_H*3-2, 1, 0);
 	wsheet_cutout_lines(wsh, 3, 4, _DIV_W*2, _DIV_H*2+1);
-	wassert(1 == list_size(&wsh->divs[0][0].lns)
-		&& 1 == list_size(&wsh->divs[0][1].lns)
-		&& 0 == list_size(&wsh->divs[1][0].lns)
-		&& 0 == list_size(&wsh->divs[1][1].lns)
-		&& 0 == list_size(&wsh->divs[1][2].lns)
-		&& 1 == list_size(&wsh->divs[2][1].lns)
-		&& 1 == list_size(&wsh->divs[2][2].lns)
+	wassert(1 == _divlsz(0, 0)
+		&& 1 == _divlsz(0, 1)
+		&& 0 == _divlsz(1, 0)
+		&& 0 == _divlsz(1, 1)
+		&& 0 == _divlsz(1, 2)
+		&& 1 == _divlsz(2, 1)
+		&& 1 == _divlsz(2, 2)
 		);
 
 	wsheet_clean(wsh);
 	wsheet_add_line(wsh, 1, 1, 2, 1, 1, 0);
 	wsheet_add_line(wsh, 1, 1, 1, _DIV_H-1, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, 3, 3);
-	wassert(1 == list_size(&wsh->divs[0][0].lns));
+	wassert(1 == _divlsz(0, 0));
 
 	printf("passed\n");
 	return 0;
 }
+
+#undef _divlsz
 
 static int
 _test_wsheet(void)
@@ -613,6 +618,6 @@ _test_wsheet(void)
 	return 0;
 }
 
-TESTFN(_test_wsheet, WSHEET)
+TESTFN(_test_wsheet, WSHEET, TESTPRI_SUBSYSTEM)
 
 #endif /* CONFIG_TEST_EXECUTABLE */

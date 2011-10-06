@@ -105,6 +105,12 @@ list_absorb(struct list_link* head, struct list_link* in) {
 	list_init_link(in);
 }
 
+static inline void
+list_link(struct list_link* prev, struct list_link* next) {
+	prev->_next = next;
+	next->_prev = prev;
+}
+
 /**
  * @pos     : the &struct list_link to use as a loop cursor
  * @head    : head of list (&struct list_link)

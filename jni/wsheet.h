@@ -24,10 +24,22 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "common.h"
+#include "list.h"
 #include "gtype.h"
 #include "div.h"
 
-DECL_EXTERN_UT_ONLY(void
+struct ucmd;
+
+struct wsheet {
+	struct list_link  his;  /* history of user command */
+	struct ucmd*      ucmd; /* current active user command */
+	uint32_t          divW, divH, colN, rowN;
+	struct div**      divs; /* divs[row][col] */
+};
+
+
+DECL_EXTERN_UT(void
 wsys_deinit(void);)
 
 struct wsheet*
@@ -44,16 +56,26 @@ void
 wsheet_cutout_lines(struct wsheet* wsh,
 		    int32_t l, int32_t t, int32_t r, int32_t b);
 
-/**
+/*
  * if line is out of sheet, it is discarded silently.
  */
-void
+DECL_EXTERN_UT(void
 wsheet_add_line(struct wsheet* wsh,
 		int32_t x0, int32_t y0,
 		int32_t x1, int32_t y1,
 		uint8_t thick,
-		uint16_t color);
-/**
+		uint16_t color);)
+
+/*
+ * @nr_pt : Number of points (NOT size of pts.)
+ *          So, in correct case, size of pts / 2 == nr_pt
+ */
+void
+wsheet_add_curve(struct wsheet* wsh,
+		 int32_t* pts, int32_t nr_pt,
+		 uint8_t  thick,
+		 uint16_t color);
+/*
  * @return : false (object is out of sheet - not added.) otherwise true.
  */
 bool
@@ -76,7 +98,7 @@ wsheet_del_obj(struct wsheet* wsh, struct obj* o);
  *
  * 'r' and 'b' is open.
  */
-DECL_EXTERN_UT_ONLY(void
+DECL_EXTERN_UT(void
 wsheet_find_lines(const struct wsheet* wsh, struct list_link* out,
 		  int32_t l, int32_t t, int32_t r, int32_t b);)
 
@@ -98,6 +120,19 @@ wsheet_draw(struct wsheet* wsh,
 	    int32_t ox, int32_t oy,
 	    int32_t l, int32_t t, int32_t r, int32_t b,
 	    float zf);
+
+
+static inline void
+wsheet_set_ucmd(struct wsheet* wsh, struct ucmd* uc) {
+	/*
+	 * wsh->ucmd can be set at only following 2 cases.
+	 *    NULL -> not NULL
+	 *    not NULL -> NULL
+	 * So, NULL->NULL and, not NULL -> not NULL are not allowed.
+	 */
+	wassert((!wsh->ucmd && uc) || (wsh->ucmd && !uc));
+	wsh->ucmd = uc;
+}
 
 
 #endif /* _WSHEEt_h_ */

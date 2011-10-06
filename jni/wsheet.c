@@ -30,11 +30,13 @@
 
 #include "common.h"
 #include "list.h"
-#include "nmp.h"
+#include "node.h"
 #include "div.h"
 #include "wsheet.h"
 #include "g2d.h"
 #include "d2d.h"
+#include "ucmd.h"
+#include "history.h"
 
 /*
  * Flag to check that this wsheet static values are initialized or not
@@ -68,9 +70,11 @@ _divI(int32_t v, uint32_t divV) {
 static void
 _init(void) {
 	wassert(!_initialized);
-	_initialized = true;
 
-	nmp_create(256 * 1024);
+	nmp_create(CONFIG_NMP_SZ);
+	his_init();
+
+	_initialized = true;
 }
 
 static void _deinit(void) __attribute__((unused));
@@ -78,15 +82,34 @@ static void
 _deinit(void) {
 	if (!_initialized)
 		return;
+
 	_initialized = false;
 
 	nmp_destroy();
+	his_deinit();
+
 }
 
-static inline struct node*
-_node(struct list_link* link) {
-	return container_of(link, struct node, lk);
+
+static inline struct ucmd*
+_ucmd_quick_start(enum ucmd_ty ty, struct wsheet* wsh) {
+	struct ucmd* uc = ucmd_create(ty, wsh);
+	wassert(uc);
+	wsheet_set_ucmd(wsh, uc);
+	ucmd_alloc(uc);
+	ucmd_start(uc);
+	return uc;
 }
+
+static inline void
+_ucmd_quick_end(struct ucmd* uc) {
+	ucmd_end(uc);
+	/* there is no active user command */
+	wsheet_set_ucmd(uc->wsh, NULL);
+	his_add(uc);
+}
+
+
 
 /********************************
  * Functions for struct wsheet
@@ -156,7 +179,7 @@ _wsheet_find_lines_worker(void* arg) {
  * out_keep : all list link should be preserved.
  * out_new : all list link should be deleted.
  */
-EXTERN_UT_ONLY void
+EXTERN_UT void
 wsheet_find_lines(const struct wsheet* wsh, struct list_link* out,
 		  int32_t l, int32_t t, int32_t r, int32_t b) {
 
@@ -285,7 +308,7 @@ _draw_(struct list_link* head,
 	struct line* ln;
 
 	while (lk != head) {
-		ln = _node(lk)->v;
+		ln = nodelk(lk)->v;
 		draw_line(pixels,
 			  w, h,
 			  _rbg16to32(ln->color),
@@ -319,8 +342,8 @@ _draw_worker(void* arg) {
 /*
  * For debugging system.
  */
-EXTERN_UT_ONLY void wsys_deinit(void) __attribute__((unused));
-EXTERN_UT_ONLY void
+EXTERN_UT void wsys_deinit(void) __attribute__((unused));
+EXTERN_UT void
 wsys_deinit(void) {
 	_deinit();
 }
@@ -355,6 +378,8 @@ wsheet_init(struct wsheet* wsh, int32_t divW, int32_t divH, int32_t colN, int32_
 				 (i + 1) * divH);
 		}
 	}
+
+	wsh->ucmd = NULL; /* there is no active user commmand */
 }
 
 void
@@ -369,139 +394,225 @@ wsheet_destroy(struct wsheet* wsh) {
 	wfree(wsh);
 }
 
-void
-wsheet_cutout_lines(struct wsheet* wsh,
+/*
+ * # of lines may be increased for each division.
+ */
+static void
+_cutout_split_lines(struct list_link* lns,
 		    int32_t l, int32_t t, int32_t r, int32_t b) {
-	struct list_link   lns;
+
+	/* Internal function */
+	void __split_set(struct line* ln,
+			 bool b_out2in,
+			 int32_t x, int32_t y) {
+		struct node* (*add_func)(struct node*, struct line*);
+		struct line* new = wmalloc(sizeof(*new));
+		new->thick = ln->thick;
+		new->color = ln->color;
+		if (b_out2in) {
+			line_set(new, ln->x0, ln->y0, x, y);
+			line_set(ln, x, y, ln->x1, ln->y1);
+			add_func = &div_add_line_prev;
+		} else {
+			line_set(new, x, y, ln->x1, ln->y1);
+			line_set(ln, ln->x0, ln->y0, x, y);
+			add_func = &div_add_line_next;
+		}
+		(*add_func)(container_of(ln->divlk, struct node, lk), new);
+	}
+
 	struct line*       ln;
-	struct line*       tmpl;
 	int32_t            intersect;
 	struct node*       n;
 
-	list_init_link(&lns);
-
-	wsheet_find_lines(wsh, &lns, l, t, r, b);
-
-	list_foreach_item(n, &lns, struct node, lk) {
+	list_foreach_item(n, lns, struct node, lk) {
 		ln = n->v;
 
 		/*
-		 * We don't care about below case
+		 * FIXME: We don't care about below case
 		 *   line is parallel with rectangle edge.
 		 * So, line this is subset of rectangle edge is not removed!
-		 * FIXME
-		 *   Above case should be handled...
-		 *   But that makes code complex.
-		 *   So, let's skip at this moment.
 		 */
 
 		/* check for all for edge. */
 		if (intersectX(&intersect, ln, l, t, b)) {
-			tmpl = wmalloc(sizeof(*tmpl));
-			tmpl->thick = ln->thick;
-			tmpl->color = ln->color;
+			__split_set(ln,
+				    (ln->x0 < ln->x1),
+				    l, intersect);
+		}
 
-			if (ln->x0 < ln->x1) {
-				line_set(tmpl, ln->x0, ln->y0, l, intersect);
-				line_set(ln, l, intersect, ln->x1, ln->y1);
-			} else {
-				line_set(tmpl, l, intersect, ln->x1, ln->y1);
-				line_set(ln, ln->x0, ln->y0, l, intersect);
-			}
-			/*
-			 * order of lines also should be preserved
-			 *   at division!
-			 */
-			div_add_line_prev(container_of(ln->divlk,
-						       struct node,
-						       lk),
-					  tmpl);
-		}
 		if (intersectX(&intersect, ln, r, t, b)) {
-			tmpl = wmalloc(sizeof(*tmpl));
-			tmpl->thick = ln->thick;
-			tmpl->color = ln->color;
-			if (ln->x0 < ln->x1) {
-				line_set(tmpl, r, intersect, ln->x1, ln->y1);
-				line_set(ln, ln->x0, ln->y0, r, intersect);
-			} else {
-				line_set(tmpl, ln->x0, ln->y0, r, intersect);
-				line_set(ln, r, intersect, ln->x1, ln->y1);
-			}
-			/*
-			 * order of lines also should be preserved
-			 *   at division!
-			 */
-			div_add_line_prev(container_of(ln->divlk,
-						       struct node,
-						       lk),
-					  tmpl);
+			__split_set(ln,
+				    (ln->x0 > ln->x1),
+				    r, intersect);
 		}
+
 		if (intersectY(&intersect, ln, t, l, r)) {
-			tmpl = wmalloc(sizeof(*tmpl));
-			tmpl->thick = ln->thick;
-			tmpl->color = ln->color;
-			if (ln->y0 < ln->y1) {
-				line_set(tmpl, ln->x0, ln->y0, intersect, t);
-				line_set(ln, intersect, t, ln->x1, ln->y1);
-			} else {
-				line_set(tmpl, intersect, t, ln->x1, ln->y1);
-				line_set(ln, ln->x0, ln->y0, intersect, t);
-			}
-			/*
-			 * order of lines also should be preserved
-			 *   at division!
-			 */
-			div_add_line_prev(container_of(ln->divlk,
-						       struct node,
-						       lk),
-					  tmpl);
+			__split_set(ln,
+				    (ln->y0 < ln->y1),
+				    intersect, t);
 		}
+
 		if (intersectY(&intersect, ln, b, l, r)) {
-			tmpl = wmalloc(sizeof(*tmpl));
-			tmpl->thick = ln->thick;
-			tmpl->color = ln->color;
-			if (ln->y0 < ln->y1) {
-				line_set(tmpl, intersect, b, ln->x1, ln->y1);
-				line_set(ln, ln->x0, ln->y0, intersect, b);
-			} else {
-				line_set(tmpl, ln->x0, ln->y0, intersect, b);
-				line_set(ln, intersect, b, ln->x1, ln->y1);
-			}
-			/*
-			 * order of lines also should be preserved
-			 *   at division!
-			 */
-			div_add_line_prev(container_of(ln->divlk,
-						       struct node,
-						       lk),
-					  tmpl);
+			__split_set(ln,
+				    (ln->y0 > ln->y1),
+				    intersect, b);
 		}
+		/* free link */
+		list_del(ln->divlk);
+
+		nmp_free(nodelk(ln->divlk));
+		wfree(ln);
+	}
+}
+
+/*
+ * SMP optimization is possible.
+ * But, not yet.
+ * If there is performance issue at 'cutout', this optimization can introduced.
+ */
+void
+wsheet_cutout_lines(struct wsheet* wsh,
+		    int32_t l, int32_t t, int32_t r, int32_t b) {
+	struct list_link   lns;
+#if 0
+	struct line*       ln;
+	struct node*       n;
+	struct ahash*      ah;
+#endif
+
+	list_init_link(&lns);
+	wsheet_find_lines(wsh, &lns, l, t, r, b);
+	_cutout_split_lines(&lns, l, t, r, b);
+	/* splitting lines is done. */
+#if 0
+#error implmenet this!!
+	/*
+	 * Concept.
+	 *
+	 *  * Hashing all node address that should be cutout.
+	 *  * If prev is NOT in hash, this node is 'start of
+	 *      curve'.
+	 *  * If next is NOT in hash, this node is 'end of
+	 *      curve'.
+	 *  * If next and prev are all in hash, this is part of
+	 *      curve. So, link is NOT changed (preserved.)
+	 *
+	 * Here is Steps
+	 *
+	 *  * Iterates lines to find 'start' or 'end' of curve.
+	 *  * If 'start of curve' is found, do following steps.
+	 *    Prev is stored as 'prev' at 'struct curve' and
+	 *      node is attached to 'curve' structure.
+	 *    (At this moment, node lost its original 'prev' link.
+	 *     But, it already stored at 'curve' structure.)
+	 *    Then, continue to follow line link until find end of
+	 *      curve.
+	 *  * If 'end of curve' is found, ignore this.
+	 */
+
+	ah = ahash_create();
+	wassert(ah);
+
+	/* hashing all lines */
+	list_foreach_item(n, lns, struct node, lk) {
+		ahash_add(ah, n->v);
+	}
+
+	/*
+	 * Find start of curve. And make curve history...
+	 */
+	list_foreach_item(n, lns, struct node, lk) {
+		if ahash_check(ah, div_prev_line(n->v))
+	}
+
+
+	ahash_destroy(ah);
+
 
 		/* free link */
 		list_del(ln->divlk);
 
-		nmp_free(_node(ln->divlk));
+		nmp_free(nodelk(ln->divlk));
 		wfree(ln);
-	}
+#endif
 
-	nlist_clean(&lns);
+	nlist_free(&lns);
 }
 
-void
+static void
+_line_split(struct line*      l,
+	    struct list_link* list,
+	    int32_t  v0,    int32_t v1,
+	    uint32_t divsz, uint32_t divN,
+	    uint8_t  thick, uint16_t color,
+	    int (*intersectF)(int32_t*, const struct line*,
+			      int32_t, int32_t, int32_t),
+	    void (*lnset)(struct line*, struct line*,
+			  int32_t, int32_t)) {
+
+	struct line*       tmpl;
+	int32_t	           v, i, ip; /* ip : Intersect Point */
+	int32_t            vstart, vend, vstep; /* value min/max */
+
+	/* check horizontal - row - split */
+	vstart = _divI(v0, divsz);
+	vend   = _divI(v1, divsz);
+	vstep  = (v0 < v1)? 1: -1;
+
+	wassert((vstep > 0 && vstart <= vend) ||
+		(vstep < 0 && vstart >= vend));
+	for (i = vstart; i != vend + vstep; i += vstep) {
+		v = (vstep > 0)? (i + 1) * divsz: i * divsz - 1;
+
+		/* keep doing with remained one! */
+		tmpl = wmalloc(sizeof(*tmpl));
+		wassert(tmpl);
+		tmpl->thick = thick;
+		tmpl->color = color;
+		if (1 == (*intersectF)(&ip, l, v, INT32_MIN, INT32_MAX)) {
+			(*lnset)(tmpl, l, ip, v);
+		} else {
+			/*
+			 * parallel case should be handled
+			 *   with non-intersection case
+			 */
+			nlist_add(list, l);
+			wfree(tmpl);
+			break; /* exit loop */
+		}
+
+		if (i >= 0 && i < divN)
+			nlist_add(list, tmpl);
+		else
+			wfree(tmpl);
+	}
+}
+
+
+EXTERN_UT void
 wsheet_add_line(struct wsheet* wsh,
 		int32_t x0, int32_t y0,
 		int32_t x1, int32_t y1,
 		uint8_t thick,
 		uint16_t color) {
 
+	void lnsetX(struct line* tmpl, struct line* l,
+		    int32_t ip, int32_t v) {
+		line_set(tmpl, l->x0, l->y0, ip, v);
+		line_set(l, ip, v, l->x1, l->y1);
+	}
+
+	void lnsetY(struct line* tmpl, struct line* l,
+		    int32_t ip, int32_t v) {
+		line_set(tmpl, l->x0, l->y0, v, ip);
+		line_set(l, v, ip, l->x1, l->y1);
+	}
+
 	struct list_link   list;
 	struct list_link   splits;
 	struct node*       n;
 	struct line*       l;
-	struct line*       tmpl;
-	int32_t	           v, i, ip; /* ip : Intersect Point */
-	int32_t            vstart, vend, vstep; /* value min/max */
 
 	list_init_link(&list);
 	list_init_link(&splits);
@@ -516,90 +627,54 @@ wsheet_add_line(struct wsheet* wsh,
 	l->thick = thick;
 	l->color = color;
 
-	/* check horizontal - row - split */
-	vstart = _divI(y0, wsh->divH);
-	vend   = _divI(y1, wsh->divH);
-	vstep  = (l->y0 < l->y1)? 1: -1;
-
-	wassert((vstep > 0 && vstart <= vend) ||
-		(vstep < 0 && vstart >= vend));
-	for (i = vstart; i != vend + vstep; i += vstep) {
-		v = (vstep > 0)? (i + 1) * wsh->divH: i * wsh->divH - 1;
-
-		/* keep doing with remained one! */
-		tmpl = wmalloc(sizeof(*tmpl));
-		wassert(tmpl);
-		tmpl->thick = thick;
-		tmpl->color = color;
-		if (1 == intersectY(&ip, l, v, INT32_MIN, INT32_MAX)) {
-			line_set(tmpl, l->x0, l->y0, ip, v);
-			line_set(l, ip, v, l->x1, l->y1);
-		} else {
-			/*
-			 * parallel case should be handled
-			 *   with non-intersection case
-			 */
-			nlist_add(&list, l);
-			wfree(tmpl);
-			break; /* exit loop */
-		}
-
-		if (i >= 0 && i < wsh->rowN)
-			nlist_add(&list, tmpl);
-		else
-			wfree(tmpl);
-	}
+	_line_split(l, &list, l->y0, l->y1,
+		    wsh->divH, wsh->rowN,
+		    thick, color,
+		    &intersectY,
+		    &lnsetX);
 
 	/* check vertical - column - split */
 	list_foreach_item(n, &list, struct node, lk) {
 		l = n->v;
 
-		vstart = _divI(l->x0, wsh->divW);
-		vend   = _divI(l->x1, wsh->divW);
-		vstep  = (l->x0 < l->x1)? 1: -1;
-
-		wassert((vstep > 0 && vstart <= vend) ||
-			(vstep < 0 && vstart >= vend));
-		for (i = vstart; i != vend + vstep; i += vstep) {
-			v = (vstep > 0)?
-				(i + 1) * wsh->divW:
-				i * wsh->divW - 1;
-
-			/* keep doing with remained one! */
-			tmpl = wmalloc(sizeof(*tmpl));
-			wassert(tmpl);
-			tmpl->thick = thick;
-			tmpl->color = color;
-			if (1 == intersectX(&ip, l, v, INT32_MIN, INT32_MAX)) {
-				line_set(tmpl, l->x0, l->y0, v, ip);
-				line_set(l, v, ip, l->x1, l->y1);
-			} else {
-				/*
-				 * parallel case should be handled
-				 *   with non-intersection case
-				 */
-				nlist_add(&splits, l);
-				wfree(tmpl);
-				break;
-			}
-			if (i >= 0 && i < wsh->colN)
-				nlist_add(&splits, tmpl);
-			else
-				wfree(tmpl);
-		}
+		_line_split(l, &splits, l->x0, l->x1,
+			    wsh->divW, wsh->colN,
+			    thick, color,
+			    &intersectX,
+			    &lnsetY);
 	}
-	nlist_clean(&list);
+	nlist_free(&list);
 
 	/* assign to division */
 	list_foreach_item(n, &splits, struct node, lk) {
-		struct div* dv = _wsheet_div_line(wsh, n->v);
-		if (dv && !line_is_empty(n->v))
-			div_add_line(dv, n->v);
-		else
+		struct node* divn; /* node of division */
+		struct div*  dv = _wsheet_div_line(wsh, n->v);
+		if (dv && !line_is_empty(n->v)) {
+			divn = div_add_line(dv, n->v);
+			if (wsh->ucmd)
+				ucmd_notify(wsh->ucmd, divn);
+		} else
 			/* there is no div to add */
 			wfree(n->v); /* free line object */
 	}
-	nlist_clean(&splits);
+	nlist_free(&splits);
+}
+
+void
+wsheet_add_curve(struct wsheet* wsh,
+		 int32_t* pts, int32_t nr_pt,
+		 uint8_t  thick,
+		 uint16_t color) {
+	int i;
+	struct ucmd* uc;
+
+	uc = _ucmd_quick_start(UCMD_CURVE, wsh);
+	for (i = 1; i < nr_pt; i++)
+		wsheet_add_line(wsh,
+				pts[2*(i-1)], pts[2*(i-1)+1],
+				pts[2*i], pts[2*i+1],
+				thick, color);
+	_ucmd_quick_end(uc);
 }
 
 bool
@@ -708,7 +783,7 @@ wsheet_draw(struct wsheet* wsh,
 
 #endif /* CONFIG_DUALCORE */
 
-	nlist_clean(&lns);
+	nlist_free(&lns);
 
 #ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_check_end(DBG_PERF_DRAW_LINE);

@@ -111,16 +111,20 @@ Java_com_yhc_writer_WSheet__1nativeCutout(JNIEnv* env, jclass jclazz,
 
 /*
  * Class:     com_yhc_writer_WSheet
- * Method:    _nativeAddLine
- * Signature: (JIIIIBSZ)V
+ * Method:    _nativeAddCurve
+ * Signature: (J[IBS)V
  */
 JNIEXPORT void JNICALL
-Java_com_yhc_writer_WSheet__1nativeAddLine(JNIEnv* env, jclass jclazz,
-					   jlong sheet,
-					   jint x0, jint y0,
-					   jint x1, jint y1,
-					   jbyte thick, jshort color) {
-	wsheet_add_line(jlong2ptr(sheet), x0, y0, x1, y1, thick, color);
+Java_com_yhc_writer_WSheet__1nativeAddCurve(JNIEnv* env, jclass jclazz,
+					    jlong sheet,
+					    jintArray jarr,
+					    jbyte thick, jshort color) {
+	jint* pts = (*env)->GetIntArrayElements(env, jarr, NULL);
+	jsize len = (*env)->GetArrayLength(env, jarr);
+
+	wassert(!(len % 2) && len > 2);
+	wsheet_add_curve(jlong2ptr(sheet), pts, len / 2, thick, color);
+	(*env)->ReleaseIntArrayElements(env, jarr, pts, JNI_ABORT);
 }
 
 /*

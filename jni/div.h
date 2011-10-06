@@ -25,9 +25,18 @@
 #include <stdbool.h>
 
 #include "common.h"
+
+#include "gtype.h"
 #include "g2d.h"
-#include "nmp.h"
-#include "listut.h"
+#include "list.h"
+#include "node.h"
+
+struct div {
+	struct list_link   lns;  /* lines */
+	struct list_link   objs; /* objects */
+	struct rect        boundary;
+};
+
 
 /*
  * 'r' and 'b' is open
@@ -57,22 +66,47 @@ div_init(struct div* div,
 	rect_set(&div->boundary, l, t, r, b);
 }
 
-static inline void
+/*
+ * @return: node that is used at division.
+ */
+static inline struct node*
 div_add_line(struct div* div, struct line* ln) {
-	struct node* n = nlist_alloc_node(ln);
+	struct node* n = node_alloc(ln);
 	wassert(n);
 	ln->div = div;
 	ln->divlk = &n->lk;
 	list_add_last(&div->lns, &n->lk);
+	return n;
 }
 
-static inline void
+static inline struct node*
 div_add_line_prev(struct node* node, struct line* ln) {
-	struct node* n = nlist_alloc_node(ln);
+	struct node* n = node_alloc(ln);
 	wassert(n && ((struct line*)node->v)->div);
 	ln->div = ((struct line*)node->v)->div;
 	ln->divlk = &n->lk;
 	list_add_prev(&node->lk, &n->lk);
+	return n;
+}
+
+static inline struct node*
+div_add_line_next(struct node* node, struct line* ln) {
+	struct node* n = node_alloc(ln);
+	wassert(n && ((struct line*)node->v)->div);
+	ln->div = ((struct line*)node->v)->div;
+	ln->divlk = &n->lk;
+	list_add_next(&node->lk, &n->lk);
+	return n;
+}
+
+static inline struct node*
+div_prev_node(struct line* ln) {
+	return container_of(ln->divlk->_prev, struct node, lk);
+}
+
+static inline struct line*
+div_prev_line(struct line* ln) {
+	return div_prev_node(ln)->v;
 }
 
 #endif /* _DIv_h_ */

@@ -32,4 +32,12 @@ class G2d {
 		int x0, y0, x1, y1, color;
 		byte thick;
 	}
+
+	static class Point {
+		Point(int ax, int ay) {
+			x = ax;
+			y = ay;
+		}
+		int x, y;
+	}
 }

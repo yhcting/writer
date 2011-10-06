@@ -20,6 +20,8 @@
 
 package com.yhc.writer;
 
+import java.util.LinkedList;
+
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.Log;
@@ -47,6 +49,8 @@ class WBStatePen implements WBStateI {
 	private int		_nr_downedpt = 0; // number of downed-point.
 	private int[]		_px, _py; // previous position
 	private int[]		_x,  _y;  // current event position - to avoid too-frequent-'new' operation.
+	private LinkedList<G2d.Point> _points	= new LinkedList<G2d.Point>();
+
 
 	// set public to access dynamically through 'Class' class
 	public static int getIcon() {
@@ -100,7 +104,13 @@ class WBStatePen implements WBStateI {
 		case MotionEvent.ACTION_POINTER_DOWN:
 		case MotionEvent.ACTION_POINTER_2_DOWN:
 		case MotionEvent.ACTION_POINTER_3_DOWN: {
+			int x, y;
 			Log.d(_TAG, "AI(" + ai + ") DOWN");
+			x = (int)me.getX(ai);
+			y = (int)me.getY(ai);
+			if (x < 0 || y < 0)
+				break; // Ignore for unexpected value.
+
 			if (0 == _nr_downedpt) {
 				// This is first down action!
 				// So, from now on, actions are valid.
@@ -117,12 +127,9 @@ class WBStatePen implements WBStateI {
 				_nr_downedpt = _AINR;
 			}
 
-			_x[ai] = (int)me.getX(ai);
-			_y[ai] = (int)me.getY(ai);
-			if (_x[ai] < 0 || _y[ai] < 0)
-				break; // Ignore for unexpected value.
-			_px[ai] = _x[ai];
-			_py[ai] = _y[ai];
+			_px[ai] = x;
+			_py[ai] = y;
+			_x[ai] = _y[ai] = WConstants.INVALID_COORD_VALUE;
 		} break;
 
 		case MotionEvent.ACTION_UP:
@@ -137,12 +144,19 @@ class WBStatePen implements WBStateI {
 				_nr_downedpt = 0;
 			}
 			_valid_action = false;
-			_board.updateLines();
+			_x[ai] = _y[ai] = WConstants.INVALID_COORD_VALUE;
+
+			if (_points.size() > 1)
+				_board.updateCurve(_points, thick(), color());
+
+			_points.clear();
 		} break;
 
 		case MotionEvent.ACTION_MOVE: {
+			boolean b_pt0_first_move = (_x[0] == WConstants.INVALID_COORD_VALUE);
 
-			if (!_valid_action) break; // ignore invalid move action
+			if (!_valid_action)
+				break; // ignore invalid move action
 
 			// Max is _AINR
 			int ptnr = (me.getPointerCount() < _AINR)? me.getPointerCount(): _AINR;
@@ -160,8 +174,10 @@ class WBStatePen implements WBStateI {
 				if (_x[0] == _px[0] && _y[0] == _py[0])
 					break; // Invalid 'Move'
 
-				_board.addLine(_px[0], _py[0], _x[0], _y[0],
-						thick(), color());
+				if (b_pt0_first_move)
+					_points.addLast(new G2d.Point(_px[0], _py[0]));
+				_points.addLast(new G2d.Point(_x[0], _y[0]));
+
 				_board.drawLine(_px[0], _py[0], _x[0], _y[0],
 						thick(), color());
 				_board.invalidateBoard(WUtil.min(_x[0], _px[0]),

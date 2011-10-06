@@ -18,19 +18,19 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
+/*
+ * Generic types
+ */
 
 #ifndef _GTYPe_h_
 #define _GTYPe_h_
 
 #include <stdint.h>
+
 #include "list.h"
 
-/*
- * Top two priority!!!
- *     Saving memory! Increasing speed!
- *     (Number of lines can be reachs to 1,000,000!! We should consider this!)
- */
-
+struct div;
+struct node;
 
 /*
  * 'left' and 'top' is included at rect.
@@ -39,12 +39,6 @@
  */
 struct rect {
 	int32_t l, t, r, b;
-};
-
-struct div {
-	struct list_link   lns;  /* lines */
-	struct list_link   objs; /* objects */
-	struct rect        boundary;
 };
 
 /*
@@ -70,15 +64,21 @@ struct obj {
 	void*               priv; /* object private data */
 };
 
-struct node {
-	struct list_link   lk;
-	void*              v;  /* value of this node */
+/*
+ * segment of curve
+ * head and tail should be at same division.
+ * @head and @tail are pointer of division node.
+ */
+struct curve {
+	struct list_link lk;
+	struct node     *head, *tail;
 };
 
-struct wsheet {
-	uint32_t          divW, divH, colN, rowN;
-	struct div**      divs; /* divs[row][col] */
+struct curves {
+	/* list of division nodes */
+	struct list_link     divns;
+	/* list of curve */
+	struct list_link     crvs;
 };
-
 
 #endif /* _GTYPe_h_ */

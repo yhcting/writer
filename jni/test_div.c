@@ -170,6 +170,6 @@ _test_div(void) {
 	return 0;
 }
 
-TESTFN(_test_div, DIV)
+TESTFN(_test_div, DIV, TESTPRI_SUBSYSTEM)
 
 #endif /* CONFIG_TEST_EXECUTABLE */

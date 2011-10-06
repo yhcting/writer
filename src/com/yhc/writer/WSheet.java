@@ -86,22 +86,23 @@ class WSheet {
 		_nativeCutout(_native_sheet, l, t, r, b);
 	}
 
-	// @bend : is this end of line sequence? : 0(false), 1(true)
-	void addLine(int x0, int y0, int x1, int y1, byte thick, int color) {
-		// TODO : change 8888 -> 565
+	void addCurve(LinkedList<G2d.Point> points, byte thick, int color) {
 		WDev.wassert(thick < WConstants.LIMIT_THICK);
-		_nativeAddLine(_native_sheet, x0, y0, x1, y1,
-				thick, rgb32to16(color));
-	}
 
-	void addLines(LinkedList<G2d.Line> lines) {
-		// TODO
-		ListIterator<G2d.Line> iter = lines.listIterator();
-		G2d.Line               l;
+		// Array format
+		// [x0][y0][x1][y1]...
+		ListIterator<G2d.Point> iter = points.listIterator();
+		G2d.Point               pt;
+		int                     i = 0;
+		int[]                   arr = new int[points.size() * 2];
 		while (iter.hasNext()) {
-			l = iter.next();
-			addLine(l.x0, l.y0, l.x1, l.y1, l.thick, l.color);
+			pt = iter.next();
+			arr[2*i] = pt.x;
+			arr[2*i + 1] = pt.y;
+			i++;
 		}
+		_nativeAddCurve(_native_sheet, arr, thick, rgb32to16(color));
+		arr = null; // explicitly notify that array is not used anymore
 	}
 
 	// this is for performance!!!
@@ -139,8 +140,7 @@ class WSheet {
 
 	private static native void _nativeCutout(long native_sheet, int l, int t, int r, int b);
 
-	private static native void _nativeAddLine(long native_sheet, int x0, int y0, int x1, int y1,
-							byte thick, short color);
+	private static native void _nativeAddCurve(long native_sheet, int[] pts, byte thick, short color);
 
 	private static native void _nativeDraw(long native_sheet, int[] pixels,
 						int w, int h, int ox, int oy,

@@ -110,17 +110,29 @@ struct _tstfn {
 	struct list_link  lk;
 };
 
-static list_decl_head(_tstfnl);
+#define _INITFNL(pri) [pri] = {&_tstfnl[pri], &_tstfnl[pri]}
+struct list_link _tstfnl[TESTPRI_NR] = {
+	_INITFNL(TESTPRI_INIT),
+	_INITFNL(TESTPRI_OPERATION),
+	_INITFNL(TESTPRI_FUNCTION),
+	_INITFNL(TESTPRI_UNIT),
+	_INITFNL(TESTPRI_MODULE),
+	_INITFNL(TESTPRI_SUBSYSTEM),
+	_INITFNL(TESTPRI_LAYER),
+	_INITFNL(TESTPRI_SYSTEM),
+	_INITFNL(TESTPRI_USER_ACTION)
+};
+#undef _INITFNL
+
 static int32_t _memblk = 0;
 
-
 void
-wregister_tstfn(int32_t (*fn)(void), const char* mod) {
+wregister_tstfn(int32_t (*fn)(void), const char* mod, enum wtestpri pri) {
 	/* malloc should be used instead of wmalloc */
 	struct _tstfn* n = malloc(sizeof(*n));
 	n->fn = fn;
 	n->modname = mod;
-	list_add_last(&_tstfnl, &n->lk);
+	list_add_last(&_tstfnl[pri], &n->lk);
 }
 
 void*
@@ -146,20 +158,22 @@ main()
 {
 	int32_t           sv, compen;
 	struct _tstfn*    p;
+	int               i;
 
-	list_foreach_item(p, &_tstfnl, struct _tstfn, lk) {
-		printf("<< Test [%s] >>\n", p->modname);
-		sv = wmblkcnt();
-		compen = (*p->fn)();
-		if (sv + compen != wmblkcnt()) {
-			printf("Unbalanced memory at [%s]!\n"
-			       "    balance : %d\n",
-			       p->modname,
-			       wmblkcnt() - sv - compen);
-			wassert(0);
+	for (i = 0; i < TESTPRI_NR; i++)
+		list_foreach_item(p, &_tstfnl[i], struct _tstfn, lk) {
+			printf("<< Test [%s] >>\n", p->modname);
+			sv = wmblkcnt();
+			compen = (*p->fn)();
+			if (sv + compen != wmblkcnt()) {
+				printf("Unbalanced memory at [%s]!\n"
+				       "    balance : %d\n",
+				       p->modname,
+				       wmblkcnt() - sv - compen);
+				wassert(0);
+			}
+			printf("  => PASSED [%s]\n", p->modname);
 		}
-		printf("<< PASSED [%s] >>\n", p->modname);
-	}
 
 	if (wmblkcnt())
 		printf("Unbalanced memory!\n"

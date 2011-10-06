@@ -51,8 +51,8 @@
 /*
  * function is declared global only at UNIT TEST
  */
-#define DECL_EXTERN_UT_ONLY(x) x
-#define EXTERN_UT_ONLY
+#define DECL_EXTERN_UT(x) x
+#define EXTERN_UT
 
 #include <assert.h>
 
@@ -64,24 +64,56 @@ void  wfree(void*);
 int32_t wmblkcnt(void);
 
 /*
+ * Priority of test function (smaller is higher).
+ * So, fundamental/basic test should have small priy value.
+ * For example,
+ *   Unit testing for '+' operation should have smaller pri value then
+ *     one for calculating distance between two points,
+ *     beause, calculating distance requires '+' operation.
+ *   Reason is "It is more difficult to debug error in complext operation
+ *     than in simple/basic operation".
+ */
+enum wtestpri {
+	/* for initialization */
+	TESTPRI_INIT        = 0,
+	/* for basic operation */
+	TESTPRI_OPERATION,
+	/* for basic functions - not for complex function */
+	TESTPRI_FUNCTION,
+	/* for basic unit test - complex functions etc. */
+	TESTPRI_UNIT,
+	/* for module */
+	TESTPRI_MODULE,
+	/* for subsystem */
+	TESTPRI_SUBSYSTEM,
+	/* for layer */
+	TESTPRI_LAYER,
+	/* for whole system */
+	TESTPRI_SYSTEM,
+	/* for testing via user-level interface */
+	TESTPRI_USER_ACTION,
+	TESTPRI_NR /* number of pri */
+};
+
+/*
  * returned value of '(*fn)(void)' is memory count compensation.
  * Ex.
  *  Test function may want to keep some memory block alive.
  *  But, test FW is unhappy with it.
  *  So, test func. should notify this compensation to FW. with return value.
  */
-void wregister_tstfn(int32_t (*fn)(void), const char* mod);
+void wregister_tstfn(int32_t (*)(void), const char*, enum wtestpri);
 
-#define TESTFN(fn, mod)							\
+#define TESTFN(fn, mod, pri)						\
 	static void __tst_##fn(void) __attribute__ ((constructor));	\
 	static void __tst_##fn(void) {					\
-		wregister_tstfn(&fn, #mod);				\
+		wregister_tstfn(&fn, #mod, pri);			\
 	}
 
 #else /* CONFIG_TEST_EXECUTABLE */
 
-#define DECL_EXTERN_UT_ONLY(x)
-#define EXTERN_UT_ONLY          static
+#define DECL_EXTERN_UT(x)
+#define EXTERN_UT          static
 
 #include <malloc.h>
 
@@ -89,7 +121,7 @@ void wregister_tstfn(int32_t (*fn)(void), const char* mod);
 #define wmalloc(x) malloc(x)
 #define wfree(x)   free(x)
 
-#define TESTFN(fn, mod)
+#define TESTFN(fn, mod, pri)
 
 #endif /* CONFIG_TEST_EXECUTABLE */
 

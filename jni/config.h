@@ -59,4 +59,26 @@
 
 /* #define CONFIG_DBG_STATISTICS */
 
+
+/*
+ * Configuration for system constants.
+ */
+
+/*
+ * size of node memory pool
+ * (This is effective only when CONFIG_MEMPOOL is enabled)
+ */
+#define CONFIG_NMP_SZ           256*1024
+
+/*
+ * # of bits to use for user-command-history-size for undo/redo.
+ * So, 2^(value) becomes size of history.
+ */
+#ifdef CONFIG_TEST_EXECUTABLE
+#	define CONFIG_HISTORY_SZBITS   1
+#else /* CONFIG_TEST_EXECUTABLE */
+#	define CONFIG_HISTORY_SZBITS   4
+#endif /* CONFIG_TEST_EXECUTABLE */
+
+
 #endif /* __CONFIg_h__ */

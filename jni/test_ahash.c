@@ -18,59 +18,53 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-/*
- * Memory Pool for Node
- */
-#ifndef _NMp_h_
-#define _NMp_h_
+#include "config.h"
 
-#ifdef CONFIG_MEMPOOL
+#ifdef CONFIG_TEST_EXECUTABLE
+#include <stdint.h>
 
 #include "common.h"
-#include "gtype.h"
-#include "mempool.h"
+#include "ahash.h"
 
-extern struct mp* g_wsheet_nmp;
+static int
+_test_ahash(void) {
+	intptr_t      i;
+	struct ahash* ah = ahash_create();
 
-static inline void
-nmp_create(uint32_t grpsz) {
-	g_wsheet_nmp = mp_create(grpsz, sizeof(struct node));
+	for (i = 0; i < 1024; i++)
+		ahash_add(ah, (void*)i);
+	wassert(1024 == ahash_sz(ah));
+
+	for (i = 128; i < 512; i++)
+		ahash_del(ah, (void*)i);
+	wassert(640 == ahash_sz(ah));
+
+	for (i = 600; i < 1000; i++)
+		ahash_del(ah, (void*)i);
+	wassert(240 == ahash_sz(ah));
+
+	for (i = 150; i < 500; i++)
+		ahash_add(ah, (void*)i);
+	wassert(590 == ahash_sz(ah));
+
+	for (i = 200; i < 400; i++)
+		ahash_del(ah, (void*)i);
+	wassert(390 == ahash_sz(ah));
+
+	for (i = 0; i < 128; i++)
+		wassert(ahash_check(ah, (void*)i));
+
+	for (i = 1000; i < 1024; i++)
+		wassert(ahash_check(ah, (void*)i));
+
+	for (i = 200; i < 400; i++)
+		wassert(!ahash_check(ah, (void*)i));
+
+	ahash_destroy(ah);
+
+	return 0;
 }
 
-static inline void
-nmp_destroy(void) {
-	mp_destroy(g_wsheet_nmp);
-}
+TESTFN(_test_ahash, AHASH, TESTPRI_MODULE)
 
-static inline struct node*
-nmp_alloc(void) {
-	return (struct node*)mp_get(g_wsheet_nmp);
-}
-
-static inline void
-nmp_free(struct node* n) {
-	mp_put(g_wsheet_nmp, n);
-}
-
-#else /* CONFIG_MEMPOOL */
-
-#include "gtype.h"
-
-#define nmp_create(x)
-#define nmp_destroy()
-
-static inline struct node*
-nmp_alloc(void) {
-	return wmalloc(sizeof(struct node));
-}
-
-static inline void
-nmp_free(struct node* n) {
-	wfree(n);
-}
-
-
-#endif /* CONFIG_MEMPOOL */
-
-
-#endif /* _NMp_h_ */
+#endif /* CONFIG_TEST_EXECUTABLE */
