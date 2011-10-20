@@ -65,6 +65,7 @@
 #define IN12_R (DIV2_L + 50)
 #define IN12_B (DIV1_B - 10)
 
+#if 0
 static int
 _test_div(void) {
 	int    i;
@@ -171,5 +172,6 @@ _test_div(void) {
 }
 
 TESTFN(_test_div, DIV, TESTPRI_SUBSYSTEM)
+#endif
 
 #endif /* CONFIG_TEST_EXECUTABLE */

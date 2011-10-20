@@ -45,8 +45,55 @@
 #define ptr2jlong(v) ((jlong)((intptr_t)(v)))
 #define jlong2ptr(v) ((void*)((intptr_t)(v)))
 
-#ifdef CONFIG_TEST_EXECUTABLE
+#ifndef min
+#define min(x, y) ((x) < (y))? (x): (y)
+#endif
 
+#ifndef max
+#define max(x, y) ((x) < (y))? (y): (x)
+#endif
+
+
+#ifdef CONFIG_DEBUG
+
+#ifdef CONFIG_ANDROID
+
+#include <android/log.h>
+
+#define _TAG_ "libwriter"
+
+#define wlogv(...) __android_log_print(ANDROID_LOG_VERBOSE, _TAG_, __VA_ARGS__)
+#define wlogd(...) __android_log_print(ANDROID_LOG_DEBUG  , _TAG_, __VA_ARGS__)
+#define wlogi(...) __android_log_print(ANDROID_LOG_INFO   , _TAG_, __VA_ARGS__)
+#define wlogw(...) __android_log_print(ANDROID_LOG_WARN   , _TAG_, __VA_ARGS__)
+#define wloge(...) __android_log_print(ANDROID_LOG_ERROR  , _TAG_, __VA_ARGS__)
+static inline void wwarn() {}
+
+#else /* CONFIG_ANDROID */
+
+#define wlogv(...) printf(__VA_ARGS__);
+#define wlogd(...) printf(__VA_ARGS__);
+#define wlogi(...) printf(__VA_ARGS__);
+#define wlogw(...) printf(__VA_ARGS__);
+#define wloge(...) printf(__VA_ARGS__);
+static inline void wwarn() {}
+
+#endif /* CONFIG_ANDROID */
+
+#else /* CONFIG_DEBUG */
+
+static inline void wlogv() {}
+static inline void wlogd() {}
+static inline void wlogi() {}
+static inline void wlogw() {}
+static inline void wloge() {}
+static inline void wwarn() {}
+
+#endif /* CONFIG_DEBUG */
+
+
+
+#ifdef CONFIG_TEST_EXECUTABLE
 
 /*
  * function is declared global only at UNIT TEST
@@ -181,6 +228,13 @@ dbg_tpf_print(uint32_t cat);
 
 void
 dbg_tpf_init(void);
+
+#else /* CONFIG_DBG_STATISTICS */
+
+#define dbg_tpf_check_start(x)
+#define dbg_tpf_check_end(x)
+#define dbg_tpf_print(x)
+#define dbg_tpf_init()
 
 #endif /* CONFIG_DBG_STATISTICS */
 

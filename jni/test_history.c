@@ -20,6 +20,8 @@
 
 #include "config.h"
 
+#if 0 /* YHCTODO */
+
 #ifdef CONFIG_TEST_EXECUTABLE
 #include <stdio.h>
 
@@ -141,3 +143,4 @@ TESTFN(_test_history, HISTORY, TESTPRI_SUBSYSTEM)
 
 #endif /* CONFIG_TEST_EXECUTABLE */
 
+#endif

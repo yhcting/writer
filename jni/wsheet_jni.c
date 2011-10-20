@@ -49,10 +49,7 @@ Java_com_yhc_writer_WSheet__1nativeInitWsheet(JNIEnv* env, jclass jclazz,
 					      jlong sheet,
 					      jint divW, jint divH,
 					      jint colN, jint rowN) {
-#ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_init();
-#endif /* CONFIG_DBG_STATISTICS */
-
 	wsheet_init(jlong2ptr(sheet), divW, divH, colN, rowN);
 	return 1;
 }
@@ -101,11 +98,9 @@ JNIEXPORT void JNICALL
 Java_com_yhc_writer_WSheet__1nativeCutout(JNIEnv* env, jclass jclazz,
 					    jlong sheet,
 					    jint l, jint t, jint r, jint b) {
-#ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_print(DBG_PERF_FILL_RECT);
 	dbg_tpf_print(DBG_PERF_FIND_LINE);
 	dbg_tpf_print(DBG_PERF_DRAW_LINE);
-#endif /* CONFIG_DBG_STATISTICS */
 	wsheet_cutout_lines(jlong2ptr(sheet), l, t, r, b);
 }
 
@@ -161,6 +156,7 @@ Java_com_yhc_writer_WSheet__1nativeSave(JNIEnv* env, jclass jclazz,
 					jlong sheet, jstring jpath) {
 
 	int             ret  = 0;
+#if 0 /* YHCTODO */
 	const char*     path = (*env)->GetStringUTFChars(env, jpath, NULL);
 	FILE*           fp   = fopen(path, "w");
 	struct wsheet*  wsh  = jlong2ptr(sheet);
@@ -207,6 +203,7 @@ Java_com_yhc_writer_WSheet__1nativeSave(JNIEnv* env, jclass jclazz,
 	if (NULL != fp)
 		fclose(fp);
 	(*env)->ReleaseStringUTFChars(env, jpath, path);
+#endif
 	return ret;
 }
 
@@ -220,6 +217,7 @@ Java_com_yhc_writer_WSheet__1nativeLoad(JNIEnv* env, jclass jclazz,
 					jlong sheet, jstring jpath) {
 
 	int             ret  = 0;
+#if 0 /* YHCTODO */
 	const char*     path = (*env)->GetStringUTFChars(env, jpath, NULL);
 	FILE*           fp   = fopen(path, "r");
 	struct wsheet*  wsh  = jlong2ptr(sheet);
@@ -263,6 +261,7 @@ Java_com_yhc_writer_WSheet__1nativeLoad(JNIEnv* env, jclass jclazz,
 	if (NULL != fp)
 		fclose(fp);
 	(*env)->ReleaseStringUTFChars(env, jpath, path);
+#endif
 	return ret;
 }
 

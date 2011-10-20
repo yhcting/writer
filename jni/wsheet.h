@@ -57,24 +57,16 @@ wsheet_cutout_lines(struct wsheet* wsh,
 		    int32_t l, int32_t t, int32_t r, int32_t b);
 
 /*
- * if line is out of sheet, it is discarded silently.
- */
-DECL_EXTERN_UT(void
-wsheet_add_line(struct wsheet* wsh,
-		int32_t x0, int32_t y0,
-		int32_t x1, int32_t y1,
-		uint8_t thick,
-		uint16_t color);)
-
-/*
  * @nr_pt : Number of points (NOT size of pts.)
  *          So, in correct case, size of pts / 2 == nr_pt
  */
 void
 wsheet_add_curve(struct wsheet* wsh,
-		 int32_t* pts, int32_t nr_pt,
+		 int32_t* pts, uint16_t nrpts,
 		 uint8_t  thick,
 		 uint16_t color);
+
+#if 0
 /*
  * @return : false (object is out of sheet - not added.) otherwise true.
  */
@@ -85,6 +77,7 @@ wsheet_add_obj(struct wsheet* wsh,
 
 void
 wsheet_del_obj(struct wsheet* wsh, struct obj* o);
+#endif
 
 /* this functions is externed only for unit test */
 
@@ -99,8 +92,8 @@ wsheet_del_obj(struct wsheet* wsh, struct obj* o);
  * 'r' and 'b' is open.
  */
 DECL_EXTERN_UT(void
-wsheet_find_lines(const struct wsheet* wsh, struct list_link* out,
-		  int32_t l, int32_t t, int32_t r, int32_t b);)
+	       wsheet_find_lines_draw(const struct wsheet* wsh, struct list_link* out,
+				      int32_t l, int32_t t, int32_t r, int32_t b);)
 
 static inline void
 wsheet_clean(struct wsheet* wsh) {

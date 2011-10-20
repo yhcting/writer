@@ -180,11 +180,9 @@ main()
 		       "    balance : %d\n",
 		       wmblkcnt());
 
-#ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_print(DBG_PERF_FILL_RECT);
 	dbg_tpf_print(DBG_PERF_FIND_LINE);
 	dbg_tpf_print(DBG_PERF_DRAW_LINE);
-#endif /* CONFIG_DBG_STATISTICS */
 	printf("=== TEST SUCCESS!!! ===\n");
 	return 0;
 }

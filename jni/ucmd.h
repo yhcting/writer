@@ -65,7 +65,9 @@ struct ucmd {
 	/* notify user command data */
 	void (*__notify)(struct ucmd*, void*);
 	union {
+#if 0
 		struct curves    crvs;/* UCMD_CURVE */
+#endif
 	} d;
 };
 
@@ -77,7 +79,8 @@ ucmd_alloc(struct ucmd* uc) {
 	int r;
 	wassert(UCMD_ST_INIT == uc->state);
 	r = uc->__alloc(uc);
-	uc->state = (r < 0)? : UCMD_ST_READY;
+	if (!(r < 0))
+		uc->state = UCMD_ST_READY;
 	return r;
 }
 
@@ -95,7 +98,8 @@ ucmd_start(struct ucmd* uc) {
 	int r;
 	wassert(UCMD_ST_READY == uc->state);
 	r = uc->__start(uc);
-	uc->state = (r < 0)? : UCMD_ST_PROGRESS;
+	if (!(r < 0))
+		uc->state = UCMD_ST_PROGRESS;
 	return r;
 }
 
@@ -104,7 +108,8 @@ ucmd_end(struct ucmd* uc) {
 	int r;
 	wassert(UCMD_ST_PROGRESS == uc->state);
 	r = uc->__end(uc);
-	uc->state = (r < 0)? : UCMD_ST_DONE;
+	if (!(r < 0))
+		uc->state = UCMD_ST_DONE;
 	return r;
 }
 
@@ -113,7 +118,8 @@ ucmd_undo(struct ucmd* uc) {
 	int r;
 	wassert(UCMD_ST_DONE == uc->state);
 	r = uc->__undo(uc);
-	uc->state = (r < 0)? : UCMD_ST_UNDONE;
+	if (!(r < 0))
+		uc->state = UCMD_ST_UNDONE;
 	return r;
 }
 
@@ -122,7 +128,8 @@ ucmd_redo(struct ucmd* uc) {
 	int r;
 	wassert(UCMD_ST_UNDONE == uc->state);
 	r = uc->__redo(uc);
-	uc->state = (r < 0)? : UCMD_ST_DONE;
+	if (!(r < 0))
+		uc->state = UCMD_ST_DONE;
 	return r;
 }
 

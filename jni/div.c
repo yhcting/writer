@@ -32,117 +32,78 @@
  * Functions for div
  ********************************/
 
-/*
- * del node with deep free.
- */
-static void
-_del_line_node_deep(struct div* div, struct node* n) {
-	wassert(&n->lk != &div->lns);
-	if (&n->lk == &div->lns)
-		return;
-	node_free_deep(n);
-}
-
-static void
-_del_obj_node_deep(struct div* div, struct node* n) {
-	struct obj* o;
-	wassert(&n->lk != &div->objs);
-	if (&n->lk == &div->objs)
-		return;
-
-	o = node_free(n);
-	o->ref--;
-
-	/*
-	 * object is not refered anymore.
-	 * free it!
-	 */
-	if (!o->ref)
-		wfree(o);
-}
-
-
 void
 div_clean(struct div* div) {
-	struct node *n, *tmp;
+	struct curve *n, *tmp;
 	/* clean lines */
-	list_foreach_item_removal_safe(n, tmp, &div->lns, struct node, lk)
-		_del_line_node_deep(div, n);
+	list_foreach_item_removal_safe(n, tmp, &div->crvs, struct curve, lk)
+		crv_destroy(n);
 
-	list_init_link(&div->lns);
+	list_init_link(&div->crvs);
 
-
-	list_foreach_item_removal_safe(n, tmp, &div->objs, struct node, lk)
+#if 0
+	list_foreach_item_removal_safe(n, tmp, &div->objs, struct curve, lk)
 		_del_obj_node_deep(div, n);
 
 	list_init_link(&div->objs);
+#endif
 }
 
+/*
+ * @out : list type < struct linend >
+ */
 void
-div_find_lines(const struct div* div,
-	       struct list_link* out,
-	       int32_t l, int32_t t, int32_t r, int32_t b) {
-	struct node*   n;
-	struct line*   ln;
-	struct rect    rect;
-	bool           b_intersected;
-
-	rect_set(&rect, l, t, r, b);
-
-	list_foreach_item(n, &div->lns, struct node, lk) {
-		ln = n->v;
-		b_intersected = false;
-		/*
-		 * Check that line is expands on this rectangle region.
-		 */
-
-		/*
-		 * Note:
-		 *   ln->x1 and ln->y1 is open set.
-		 */
-		if ((ln->x0 < l && ln->x1 <= l)
-		    || (ln->x0 >= r && ln->x1 >= r)
-		    || (ln->y0 < t && ln->y1 <= t)
-		    || (ln->y0 >= b && ln->y1 >= b))
-			/* trivially not intersected */
-			;
-		else if (rect_is_contains(&rect, ln->x0, ln->y0)
-		    /* check for open point */
-		    || (ln->x1 > l && ln->x1 < (r - 1)
-			&& ln->y1 > t && ln->y1 < (b - 1 ))) {
-			/* trivial case! */
-			b_intersected = true;
-		} else {
-			int32_t intersect;;
-			if (intersectX(&intersect, ln, l, t, b)
-			    || intersectX(&intersect, ln, r, t, b)
-			    || intersectY(&intersect, ln, t, l, r)
-			    || intersectY(&intersect, ln, b, l, r)) {
-				b_intersected = true;
-			}
-		}
-		if (b_intersected)
-			nlist_add(out, ln);
+div_find_lines_draw(const struct div* div,
+		    struct list_link* out,
+		    int32_t l, int32_t t, int32_t r, int32_t b) {
+	struct lines_draw* ld;
+	struct curve*      crv;
+	crv_foreach(crv, &div->crvs) {
+		ld = lines_draw_create(crv->color, crv->thick);
+		crv_find_lines_draw(crv, &ld->lns, l, t, r, b);
+		list_add_last(out, &ld->lk);
 	}
 }
 
 void
-div_find_objs(const struct div* div,
-	      struct list_link* out,
-	      int32_t l, int32_t t, int32_t r, int32_t b) {
-	struct node*   n;
-	struct obj*    o;
-	struct rect    rect;
+div_get_lines_draw(struct div* div, struct list_link* hd) {
+	struct lines_draw*  ld;
+	struct curve*       crv;
+	const struct point *p0, *p1, *ptend;
+	crv_foreach(crv, &div->crvs) {
+		ld = lines_draw_create(crv->color, crv->thick);
 
-	rect_set(&rect, l, t, r, b);
+		crv_foreach_point2(crv, p0, p1, ptend)
+			linend_add_last2(&ld->lns, p0, p1);
 
-	list_foreach_item(n, &div->objs, struct node, lk) {
-		o = n->v;
-		if (rect_is_overwrapped(&o->extent, &rect))
-			nlist_add(out, o);
+		list_add_last(hd, &ld->lk);
 	}
 }
 
+void
+div_cutout(struct div* div,
+	   int32_t l, int32_t t, int32_t r, int32_t b) {
+	struct curve       *crv, *tmp;
+	struct list_link    in;
+	struct list_link    out;
+
+	list_init_link(&in);
+	list_init_link(&out);
+
+	crv_foreach_removal_safe(crv, tmp, &div->crvs) {
+		crv_split(crv, &in, &out, l, t, r, b);
+		/*
+		 * replace 'crv' with out-curve-list in the list.
+		 */
+		list_link(&crv_prev(crv)->lk, list_first(&out));
+		list_link(list_last(&out),    &crv_next(crv)->lk);
+		crv_destroy(crv);
+		crv_list_free(&in);
+		list_init_link(&out);
+	}
+}
+
+#if 0
 void
 div_del_obj(struct div* div, struct obj* o) {
 	struct node* n;
@@ -152,3 +113,4 @@ div_del_obj(struct div* div, struct obj* o) {
 
 	_del_obj_node_deep(div, n);
 }
+#endif

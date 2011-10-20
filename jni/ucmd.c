@@ -28,6 +28,7 @@
 #include "ahash.h"
 #include "wsheet.h"
 
+#if 0 /* YHCTODO */
 /******************************************
  * ut functions
  ******************************************/
@@ -383,3 +384,4 @@ ucmd_create(enum ucmd_ty type, struct wsheet* wsh) {
 	return uc;
 }
 
+#endif

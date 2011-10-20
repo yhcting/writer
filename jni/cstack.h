@@ -79,8 +79,8 @@ cstk_is_full(const struct cstk* s) {
 void
 cstk_dump(struct cstk*);
 #else /* CONFIG_TEST_EXECUTABLE */
-void
-cstk_dump(struct cstk*){}
+static inline void
+cstk_dump(struct cstk* c){}
 #endif /* CONFIG_TEST_EXECUTABLE */
 
 

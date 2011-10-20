@@ -101,9 +101,6 @@ class WBoard extends View {
 	// To secure memory space (to avoid continuous 'new' operation)
 	private final Rect	_tmpR		= new Rect();
 
-	// lines drawn between press and release
-	private LinkedList<G2d.Point> _points	= new LinkedList<G2d.Point>();
-
 	/*******************************************
 	 * Pre-allocated object - to prevent too frequent allocation!! All
 	 * should be used with very short life cycle - ex. in one function
@@ -531,16 +528,8 @@ class WBoard extends View {
 		}
 	}
 
-	/*
-	 * Sheet Interface
-	 */
-	void addPoint(int x, int y) {
-		_points.addLast(new G2d.Point(_c2s(x) + _ar.left, _c2s(y) + _ar.top));
-
-	}
-
 	void updateCurve(LinkedList<G2d.Point> points, byte thick, int color) {
-		if (!_points.isEmpty()) {
+		if (!points.isEmpty()) {
 			// Change from board coordinate to sheet coordinate
 			ListIterator<G2d.Point> iter = points.listIterator();
 			G2d.Point               pt;
@@ -551,8 +540,7 @@ class WBoard extends View {
 			}
 
 			// TODO!!!! ---
-			_sheet.addCurve(_points, thick, color);
-			_points.clear();
+			_sheet.addCurve(points, thick, color);
 		}
 	}
 

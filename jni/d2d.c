@@ -92,9 +92,7 @@ fill_rect(int32_t* pixels, int32_t w, int32_t h,
 	  int32_t  color,
 	  int32_t  l, int32_t t, int32_t r, int32_t b) {
 
-#ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_check_start(DBG_PERF_FILL_RECT);
-#endif /* CONFIG_DBG_STATISTICS */
 
 #if defined(CONFIG_DUALCORE) && !defined(CONFIG_ARCH_ARM)
 
@@ -124,10 +122,7 @@ fill_rect(int32_t* pixels, int32_t w, int32_t h,
 
 #endif /* defined(CONFIG_DUALCORE) && !defined(CONFIG_ARCH_ARM) */
 
-#ifdef CONFIG_DBG_STATISTICS
 	dbg_tpf_check_end(DBG_PERF_FILL_RECT);
-#endif /* CONFIG_DBG_STATISTICS */
-
 }
 
 void

@@ -22,6 +22,19 @@
 #define __CONFIg_h__
 
 /*
+ * Code for unit test executable.
+ */
+/* #define CONFIG_TEST_EXECUTABLE */
+
+/*
+ * Android library
+ */
+#define CONFIG_ANDROID
+
+
+/* #define CONFIG_DEBUG */
+
+/*
  * For ARM specific optimization!
  *
  * Dualcore optimization test result on ARM
@@ -30,11 +43,6 @@
  *     DRAW_LINE : dualcore is faster effectively
  */
 #define CONFIG_ARCH_ARM
-
-/*
- * Code for unit test executable.
- */
-#define CONFIG_TEST_EXECUTABLE
 
 /*
  * Optimization for dual-core
@@ -58,7 +66,6 @@
 /* #define CONFIG_MEMPOOL */
 
 /* #define CONFIG_DBG_STATISTICS */
-
 
 /*
  * Configuration for system constants.

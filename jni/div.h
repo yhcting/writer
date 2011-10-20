@@ -29,84 +29,79 @@
 #include "gtype.h"
 #include "g2d.h"
 #include "list.h"
-#include "node.h"
+#include "curve.h"
+
+/*
+ * division node
+ */
 
 struct div {
-	struct list_link   lns;  /* lines */
+	struct list_link   crvs; /* curves */
 	struct list_link   objs; /* objects */
 	struct rect        boundary;
 };
 
 
-/*
- * 'r' and 'b' is open
- */
-void
-div_find_lines(const struct div* div,
-	       struct list_link* out,
-	       int32_t l, int32_t t, int32_t r, int32_t b);
-
 void
 div_clean(struct div* div);
 
 static inline void
-div_add_obj(struct div* div, struct obj* o) {
-	nlist_add(&div->objs, o);
-	o->ref++;
-}
-
-void
-div_del_obj(struct div* div, struct obj* o);
-
-static inline void
 div_init(struct div* div,
 	 int32_t l, int32_t t, int32_t r, int32_t b) {
-	list_init_link(&div->lns);
+	list_init_link(&div->crvs);
 	list_init_link(&div->objs);
 	rect_set(&div->boundary, l, t, r, b);
 }
 
+static inline int32_t
+div_nr_curve(const struct div* div) {
+	return list_size(&div->crvs);
+}
+
+static inline int32_t
+div_nr_lines(const struct div* div) {
+	int32_t       cnt = 0;
+	struct curve* crv;
+	crv_foreach(crv, &div->crvs)
+		cnt += crv->nrpts - 1;
+	return cnt;
+}
+
+static inline int32_t
+div_nr_points(const struct div* div) {
+	int32_t       cnt = 0;
+	struct curve* crv;
+	crv_foreach(crv, &div->crvs)
+		cnt += crv->nrpts;
+	return cnt;
+}
+
+static inline void
+div_to_pointnd_list(struct div* div, struct list_link* hd) {
+	struct curve* crv;
+	crv_foreach(crv, &div->crvs)
+		crv_to_pointnd_list(crv, hd);
+}
+
+static inline void
+div_add_curve(struct div* div, struct curve* crv) {
+	list_add_last(&div->crvs, &crv->lk);
+}
+
 /*
- * @return: node that is used at division.
+ * @out : list type < struct lines_draw >
  */
-static inline struct node*
-div_add_line(struct div* div, struct line* ln) {
-	struct node* n = node_alloc(ln);
-	wassert(n);
-	ln->div = div;
-	ln->divlk = &n->lk;
-	list_add_last(&div->lns, &n->lk);
-	return n;
-}
+void
+div_find_lines_draw(const struct div* div,
+		       struct list_link* out,
+		       int32_t l, int32_t t, int32_t r, int32_t b);
 
-static inline struct node*
-div_add_line_prev(struct node* node, struct line* ln) {
-	struct node* n = node_alloc(ln);
-	wassert(n && ((struct line*)node->v)->div);
-	ln->div = ((struct line*)node->v)->div;
-	ln->divlk = &n->lk;
-	list_add_prev(&node->lk, &n->lk);
-	return n;
-}
+void
+div_cutout(struct div* div,
+	   int32_t l, int32_t t, int32_t r, int32_t b);
 
-static inline struct node*
-div_add_line_next(struct node* node, struct line* ln) {
-	struct node* n = node_alloc(ln);
-	wassert(n && ((struct line*)node->v)->div);
-	ln->div = ((struct line*)node->v)->div;
-	ln->divlk = &n->lk;
-	list_add_next(&node->lk, &n->lk);
-	return n;
-}
+void
+div_get_lines_draw(struct div* div, struct list_link* hd);
 
-static inline struct node*
-div_prev_node(struct line* ln) {
-	return container_of(ln->divlk->_prev, struct node, lk);
-}
-
-static inline struct line*
-div_prev_line(struct line* ln) {
-	return div_prev_node(ln)->v;
-}
 
 #endif /* _DIv_h_ */

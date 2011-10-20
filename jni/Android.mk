@@ -5,16 +5,20 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := writer-jni
 LOCAL_SRC_FILES := \
+	ahash.c \
+	cstack.c \
+	curve.c \
 	d2d.c \
 	d2d_jni.c \
 	div.c \
 	g2d.c \
-	wsheet.c \
-	wsheet_jni.c \
-	obj.c \
+	history.c \
+	main.c \
 	mempool.c \
-	ahash.c \
-	main.c
+	obj.c \
+	ucmd.c \
+	wsheet.c \
+	wsheet_jni.c
 
 LOCAL_LDLIBS := -lc -llog
 

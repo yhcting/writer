@@ -25,6 +25,8 @@
 #include "cstack.h"
 #include "history.h"
 
+#if 0 /* YHCTODO */
+
 static struct cstk* _hstk;     /* history stack */
 static struct cstk* _undostk;  /* undo stack */
 
@@ -85,3 +87,4 @@ int32_t
 his_undosz(void) {
 	return cstk_sz(_undostk);
 }
+#endif

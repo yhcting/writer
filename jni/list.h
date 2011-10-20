@@ -43,6 +43,16 @@ list_is_empty(const struct list_link* head) {
 	return head->_next == head;
 }
 
+static inline struct list_link*
+list_first(struct list_link* head) {
+	return head->_next;
+}
+
+static inline struct list_link*
+list_last(struct list_link* head) {
+	return head->_prev;
+}
+
 static inline void
 list_add(struct list_link* prev,
 	   struct list_link* next,

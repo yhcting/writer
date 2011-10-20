@@ -34,8 +34,6 @@ import java.util.ListIterator;
 import android.graphics.Rect;
 
 class WSheet {
-	private static final int _MAX_V = 0x0000ffff; // internally, cooridnate value is treated as unsigned short!!
-
 	// to support 64bit host machine.
 	private final long _native_sheet;
 
@@ -61,7 +59,6 @@ class WSheet {
 	}
 
 	int init(int divW, int divH, int colN, int rowN) {
-		WDev.wassert(divW * colN < _MAX_V && divH * rowN < _MAX_V);
 		_boundary.set(0, 0, divW * colN, divH * rowN);
 		return _nativeInitWsheet(_native_sheet, divW, divH, colN, rowN);
 	}
