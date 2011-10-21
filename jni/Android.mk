@@ -11,6 +11,7 @@ LOCAL_SRC_FILES := \
 	d2d.c \
 	d2d_jni.c \
 	div.c \
+	file.c \
 	g2d.c \
 	history.c \
 	main.c \

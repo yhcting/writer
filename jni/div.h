@@ -36,7 +36,8 @@
  */
 
 struct div {
-	struct list_link   crvs; /* curves */
+	/* curves - list of 'struct curve' */
+	struct list_link   crvs;
 	struct list_link   objs; /* objects */
 	struct rect        boundary;
 };

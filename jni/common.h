@@ -45,6 +45,8 @@
 #define ptr2jlong(v) ((jlong)((intptr_t)(v)))
 #define jlong2ptr(v) ((void*)((intptr_t)(v)))
 
+#define arrsz(a) (sizeof(a) / sizeof(a[0]))
+
 #ifndef min
 #define min(x, y) ((x) < (y))? (x): (y)
 #endif

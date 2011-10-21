@@ -28,7 +28,7 @@
 
 #include "common.h"
 #include "wsheet.h"
-
+#include "file.h"
 /*
  * Class:     com_yhc_writer_WSheet
  * Method:    _nativeCreateWsheet
@@ -154,57 +154,22 @@ Java_com_yhc_writer_WSheet__1nativeDraw(JNIEnv* env, jclass jclazz,
 JNIEXPORT jint JNICALL
 Java_com_yhc_writer_WSheet__1nativeSave(JNIEnv* env, jclass jclazz,
 					jlong sheet, jstring jpath) {
-
-	int             ret  = 0;
-#if 0 /* YHCTODO */
-	const char*     path = (*env)->GetStringUTFChars(env, jpath, NULL);
-	FILE*           fp   = fopen(path, "w");
+	const char*     path;
+	FILE*           fp;
 	struct wsheet*  wsh  = jlong2ptr(sheet);
-	struct node*    n;
-	struct line*    ln;
-	int32_t         i, j, sz;
 
-	if (NULL == fp)
-		goto bail;
+	path = (*env)->GetStringUTFChars(env, jpath, NULL);
 
-#define _FW(vAL)  fwrite(&(vAL), sizeof(vAL), 1, fp)
+	fp = fopen(path, "w");
+	if (!fp)
+		return 0;
+	file_save_wsheet(fp, wsh);
+	fclose(fp);
 
-	_FW(wsh->divW);
-	_FW(wsh->divH);
-	_FW(wsh->colN);
-	_FW(wsh->rowN);
-
-	for (i = 0; i < wsh->rowN; i++) {
-		for (j = 0; j < wsh->colN; j++) {
-			sz = list_size(&wsh->divs[i][j].lns);
-			_FW(sz);
-			list_foreach_item(n,
-					  &wsh->divs[i][j].lns,
-					  struct node,
-					  lk) {
-				ln = n->v;
-				_FW(ln->x0);
-				_FW(ln->y0);
-				_FW(ln->x1);
-				_FW(ln->y1);
-				_FW(ln->color);
-				_FW(ln->thick);
-				_FW(ln->alpha);
-			}
-
-		}
-	}
-
-#undef _FW
-
-	ret = 1; // success
-
- bail:
-	if (NULL != fp)
-		fclose(fp);
 	(*env)->ReleaseStringUTFChars(env, jpath, path);
-#endif
-	return ret;
+
+
+	return 1;
 }
 
 /*
@@ -215,53 +180,21 @@ Java_com_yhc_writer_WSheet__1nativeSave(JNIEnv* env, jclass jclazz,
 JNIEXPORT jint JNICALL
 Java_com_yhc_writer_WSheet__1nativeLoad(JNIEnv* env, jclass jclazz,
 					jlong sheet, jstring jpath) {
-
-	int             ret  = 0;
-#if 0 /* YHCTODO */
-	const char*     path = (*env)->GetStringUTFChars(env, jpath, NULL);
-	FILE*           fp   = fopen(path, "r");
+	const char*     path;
+	FILE*           fp;
 	struct wsheet*  wsh  = jlong2ptr(sheet);
-	struct line*    ln;
-	int32_t	        i, j, k, sz;
 
-	if (NULL == fp)
-		goto bail;
+	path = (*env)->GetStringUTFChars(env, jpath, NULL);
 
-#define _FR(vAL)  fread(&(vAL), sizeof(vAL), 1, fp)
+	fp = fopen(path, "r");
+	if (!fp)
+		return 0;
+	file_load_wsheet(fp, wsh);
+	fclose(fp);
 
-	_FR(wsh->divW);
-	_FR(wsh->divH);
-	_FR(wsh->colN);
-	_FR(wsh->rowN);
-
-	wsheet_init(wsh, wsh->divW, wsh->divH, wsh->colN, wsh->rowN);
-
-	for (i = 0; i < wsh->rowN; i++) {
-		for (j = 0; j < wsh->colN; j++) {
-			_FR(sz);
-			for (k = 0; k < sz; k++) {
-				ln = wmalloc(sizeof(*ln));
-				_FR(ln->x0);
-				_FR(ln->y0);
-				_FR(ln->x1);
-				_FR(ln->y1);
-				_FR(ln->color);
-				_FR(ln->thick);
-				_FR(ln->alpha);
-				div_add_line(&wsh->divs[i][j], ln);
-			}
-		}
-	}
-
-#undef _FR
-
-	ret = 1; // success
-
- bail:
-	if (NULL != fp)
-		fclose(fp);
 	(*env)->ReleaseStringUTFChars(env, jpath, path);
-#endif
-	return ret;
+
+
+	return 1;
 }
 

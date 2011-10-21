@@ -52,6 +52,13 @@ wsheet_init(struct wsheet* wsh,
 void
 wsheet_destroy(struct wsheet* wsh);
 
+/*
+ * Find div which (x, y) belongs to
+ * @return: if (x, y) is not in sheet, NULL is returned.
+ */
+struct div*
+wsheet_find_div(struct wsheet* wsh, int32_t x, int32_t y);
+
 void
 wsheet_cutout_lines(struct wsheet* wsh,
 		    int32_t l, int32_t t, int32_t r, int32_t b);

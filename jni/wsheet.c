@@ -342,6 +342,12 @@ wsheet_destroy(struct wsheet* wsh) {
 	wfree(wsh);
 }
 
+
+struct div*
+wsheet_find_div(struct wsheet* wsh, int32_t x, int32_t y) {
+	return _div_point_belong_to(wsh, x, y);
+}
+
 /*
  * SMP optimization is possible.
  * But, not yet.
