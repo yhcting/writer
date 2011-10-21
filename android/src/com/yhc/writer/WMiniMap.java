@@ -24,11 +24,12 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.yhc.writer.G2d.Rect;
+import com.yhc.writer.G2d.RectF;
 
 class WMiniMap extends View {
 	private int _sw = 0, _sh = 0;
@@ -107,14 +108,14 @@ class WMiniMap extends View {
 			float x = _normalizeX(me.getX()), y = _normalizeY(me.getY());
 			float w = _nar.width(), h = _nar.height();
 			RectF nr = new RectF();
-			nr.left = x - w / 2;
-			nr.top = y - h / 2;
-			nr.right = nr.left + w;
-			nr.bottom = nr.top + h;
+			nr.l = x - w / 2;
+			nr.t = y - h / 2;
+			nr.r = nr.l + w;
+			nr.b = nr.t + h;
 			WUtil.adjust(nr);
-			WDev.wassert(nr.left < nr.right && nr.top < nr.bottom);
+			WDev.wassert(nr.l < nr.r && nr.t < nr.b);
 			if (null != _activie_region_moved_listener) {
-				_activie_region_moved_listener.onMoved(this, nr.left, nr.top);
+				_activie_region_moved_listener.onMoved(this, nr.l, nr.t);
 			}
 			_nar.set(nr);
 		} break;
@@ -129,10 +130,10 @@ class WMiniMap extends View {
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		Rect rect = new Rect((int) (_nar.left * _sw),
-					(int) (_nar.top * _sh),
-					(int) (_nar.right * _sw + 1),
-					(int) (_nar.bottom * _sh + 1));
-		canvas.drawRect(rect, _paint);
+		Rect rect = new Rect((int) (_nar.l * _sw),
+					(int) (_nar.t * _sh),
+					(int) (_nar.r * _sw + 1),
+					(int) (_nar.b * _sh + 1));
+		canvas.drawRect(WAL.convertFrom(rect), _paint);
 	}
 }

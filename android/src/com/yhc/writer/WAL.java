@@ -18,26 +18,19 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
+// WAL (Writer Abstraction Layer)
+// This is abstraction layer between Android platform and java and native library.
+
 package com.yhc.writer;
 
-class G2d {
-	static class Line {
-		Line(int ax0, int ay0, int ax1, int ay1,
-			byte athick, int acolor) {
-			x0 = ax0; y0 = ay0;
-			x1 = ax1; y1 = ay1;
-			color = acolor; thick = athick;
-		}
+import android.graphics.Rect;
 
-		int x0, y0, x1, y1, color;
-		byte thick;
+class WAL {
+	static Rect convertFrom(G2d.Rect r) {
+		return new Rect(r.l, r.t, r.r, r.b);
 	}
 
-	static class Point {
-		Point(int ax, int ay) {
-			x = ax;
-			y = ay;
-		}
-		int x, y;
+	static G2d.Rect convertTo(Rect r) {
+		return new G2d.Rect(r.left, r.top, r.right, r.bottom);
 	}
 }

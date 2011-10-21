@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import android.graphics.Rect;
+import com.yhc.writer.G2d.Rect;
 
 class WSheet {
 	// to support 64bit host machine.
@@ -68,11 +68,11 @@ class WSheet {
 	}
 
 	int width() {
-		return _boundary.right;
+		return _boundary.r;
 	}
 
 	int height() {
-		return _boundary.bottom;
+		return _boundary.b;
 	}
 
 	Rect boundary() {

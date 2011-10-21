@@ -73,6 +73,8 @@ static inline void wwarn() {}
 
 #else /* CONFIG_ANDROID */
 
+#include <stdio.h>
+
 #define wlogv(...) printf(__VA_ARGS__);
 #define wlogd(...) printf(__VA_ARGS__);
 #define wlogi(...) printf(__VA_ARGS__);

@@ -20,7 +20,7 @@
 
 package com.yhc.writer;
 
-import android.util.Log;
+// import android.util.Log;
 
 class WDev {
 
@@ -43,8 +43,10 @@ class WDev {
 	}
 
 	static void log(int level, String string) {
+		/*
 		if (__DEBUG__ && _LOG_LEVEL <= level)
 			Log.d("[Writer]", string);
+		*/
 	}
 
 	/**

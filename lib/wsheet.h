@@ -64,12 +64,12 @@ wsheet_cutout_lines(struct wsheet* wsh,
 		    int32_t l, int32_t t, int32_t r, int32_t b);
 
 /*
- * @nr_pt : Number of points (NOT size of pts.)
- *          So, in correct case, size of pts / 2 == nr_pt
+ * @nrpts : Number of points (NOT size of pts.)
+ *          So, in correct case, size of pts / 2 == nrpts
  */
 void
 wsheet_add_curve(struct wsheet* wsh,
-		 int32_t* pts, uint16_t nrpts,
+		 const int32_t* pts, uint16_t nrpts,
 		 uint8_t  thick,
 		 uint16_t color);
 

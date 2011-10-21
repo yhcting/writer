@@ -20,8 +20,8 @@
 
 package com.yhc.writer;
 
-import android.graphics.Rect;
-import android.graphics.RectF;
+import com.yhc.writer.G2d.Rect;
+import com.yhc.writer.G2d.RectF;
 
 class WUtil {
 	static float min(float x, float y) {
@@ -41,17 +41,17 @@ class WUtil {
 	}
 
 	static final void adjust(Rect nr, int l, int t, int r, int b) {
-		if (nr.left < l)
-			nr.left = l;
+		if (nr.l < l)
+			nr.l = l;
 
-		if (nr.top < t)
-			nr.top = t;
+		if (nr.t < t)
+			nr.t = t;
 
-		if (nr.right > r)
-			nr.right = r;
+		if (nr.r > r)
+			nr.r = r;
 
-		if (nr.bottom > b)
-			nr.bottom = b;
+		if (nr.b > b)
+			nr.b = b;
 	}
 
 	/**
@@ -61,25 +61,25 @@ class WUtil {
 	 */
 	static final void adjust(Rect nr, Rect boundary) {
 		WDev.wassert(nr.width() <= boundary.width() && nr.height() <= boundary.height());
-		adjust(nr, boundary.left, boundary.top, boundary.right, boundary.bottom);
+		adjust(nr, boundary.l, boundary.t, boundary.r, boundary.b);
 	}
 
 	static final void expand(Rect r, int dx, int dy) {
-		r.left -= dx;
-		r.right += dx;
-		r.top -= dy;
-		r.bottom += dy;
+		r.l -= dx;
+		r.r += dx;
+		r.t -= dy;
+		r.b += dy;
 	}
 
 	static final void expand(Rect r, float ratio) {
 		float wf = (r.width()) * ratio;
 		float hf = (r.height()) * ratio;
-		float ox = ((r.left + r.right)) / 2.0f;
-		float oy = ((r.top + r.bottom)) / 2.0f;
-		r.left	= WUtil.roundOff(ox - wf / 2.0f);
-		r.top	= WUtil.roundOff(oy - hf / 2.0f);
-		r.right	= r.left + WUtil.roundOff(wf);
-		r.bottom= r.top + WUtil.roundOff(hf);
+		float ox = ((r.l + r.r)) / 2.0f;
+		float oy = ((r.t + r.b)) / 2.0f;
+		r.l	= WUtil.roundOff(ox - wf / 2.0f);
+		r.t	= WUtil.roundOff(oy - hf / 2.0f);
+		r.r	= r.l + WUtil.roundOff(wf);
+		r.b= r.t + WUtil.roundOff(hf);
 	}
 
 	static final int roundOff(float v) {
@@ -91,17 +91,17 @@ class WUtil {
 	 * @param nr	: normalized rect
 	 */
 	static final void adjust(RectF nr) {
-		if (nr.left < 0)
-			nr.left = 0;
+		if (nr.l < 0)
+			nr.l = 0;
 
-		if (nr.top < 0)
-			nr.top = 0;
+		if (nr.t < 0)
+			nr.t = 0;
 
-		if (nr.right > 1.0f)
-			nr.right = 1.0f;
+		if (nr.r > 1.0f)
+			nr.r = 1.0f;
 
-		if (nr.bottom > 1.0f)
-			nr.bottom = 1.0f;
+		if (nr.b > 1.0f)
+			nr.b = 1.0f;
 	}
 	/**
 	 * @param ppt	: previous values

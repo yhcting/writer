@@ -22,6 +22,9 @@
 
 #ifdef CONFIG_TEST_EXECUTABLE
 #include "wsheet.h"
+#include "test_values.h"
+#include "gtype.h"
+#include "g2d.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -593,7 +596,7 @@ static int
 _nr_lines_draw(struct list_link* hd) {
 	int                cnt = 0;
 	struct lines_draw* ld;
-	list_foreach_item(ld, hd, struct lines_draw, lk)
+	lines_draw_foreach(ld, hd)
 		cnt += list_size(&ld->lns);
 	return cnt;
 }
@@ -774,6 +777,33 @@ _test_cutout_lines(struct wsheet* wsh) {
 
 #undef _divlsz
 
+static void
+_test_draw() {
+	struct wsheet*     wsh;
+	struct list_link   hd;
+	struct lines_draw* ld;
+	struct linend*     lnd;
+	const int32_t*     pi;
+
+	wsh = wsheet_create();
+	wsheet_init(wsh, 30, 20, 1, 1);
+
+	list_init_link(&hd);
+	wsheet_add_curve(wsh, _pts0, arrsz(_pts0)/2, 0, 0);
+	wsheet_find_lines_draw(wsh, &hd, 0, 0, 30, 20);
+	pi = _pts0;
+	lines_draw_foreach(ld, &hd) {
+		linend_foreach(lnd, &ld->lns) {
+			wassert(lnd->ln.p0.x == *pi++);
+			wassert(lnd->ln.p0.y == *pi++);
+		}
+	}
+	lines_draw_free_list_deep(&hd);
+
+	wsheet_destroy(wsh);
+}
+
+
 static int
 _test_wsheet(void)
 {
@@ -783,8 +813,10 @@ _test_wsheet(void)
 	_test_add(wsh);
 	_test_find_lines(wsh);
 	_test_cutout_lines(wsh);
-
 	wsheet_destroy(wsh);
+
+	_test_draw();
+
 	wsys_deinit();
 	return 0;
 }

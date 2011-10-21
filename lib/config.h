@@ -32,7 +32,7 @@
 #define CONFIG_ANDROID
 
 
-/* #define CONFIG_DEBUG */
+#define CONFIG_DEBUG
 
 /*
  * For ARM specific optimization!
@@ -49,7 +49,7 @@
  * This is not well-structured code.
  * Only for staging and prototyping
  */
-#define CONFIG_DUALCORE
+/* #define CONFIG_DUALCORE */
 
 /*
  * use memory pool for line/node

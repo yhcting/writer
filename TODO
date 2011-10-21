@@ -1,6 +1,16 @@
 NOTATION
     P : Priority(hightest 1 ~ 5 Lowest)
 
+BUG
+---
+* Zoom out / move after drawing curve, first line-segment is disappeared
+    - draw issue?? or add issue???
+* We can move active region out of current sheet => crash!!
+    - touch at minimap.
+    - drag to out of area - usually upper
+    - crash!!
+
+
 Performance Optimization
 ------------------------
 + Draw Routibne

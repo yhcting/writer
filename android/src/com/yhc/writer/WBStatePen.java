@@ -37,15 +37,15 @@ class WBStatePen implements WBStateI {
 	private byte		_thick = 4;
 	private int		_color = Color.BLACK; // black
 
-	/*
-	 *  Why this flags is required!
-	 *  We cannot know which point is motioned in multi-touch.
-	 *  So, changing between multi-points-motions
-	 *  (ex. 2-point-motion -> 3-points-motion -> 2-points-motion)
-	 *    may cause unexpected action.
-	 *  To avoid this, motions only from first 'down' to first 'up', are regarded as 'VALID'
-	 */
+	//  Why this flags is required!
+	//  We cannot know which point is motioned in multi-touch.
+	//  So, changing between multi-points-motions
+	//  (ex. 2-point-motion -> 3-points-motion -> 2-points-motion)
+	//    may cause unexpected action.
+	//  To avoid this, motions only from first 'down' to first 'up', are regarded as 'VALID'
 	private boolean		_valid_action = false;
+	// To start to save points at first MOVE event (NOT first DOWN event!)
+	private boolean         _b_first_move = true;
 	private int		_nr_downedpt = 0; // number of downed-point.
 	private int[]		_px, _py; // previous position
 	private int[]		_x,  _y;  // current event position - to avoid too-frequent-'new' operation.
@@ -97,7 +97,6 @@ class WBStatePen implements WBStateI {
 	@Override
 	public boolean onTouch(MotionEvent me) {
 		int ai = me.getActionIndex();
-		//Log.d(_TAG, "AI : " + ai);
 
 		switch (me.getAction()) {
 		case MotionEvent.ACTION_DOWN:
@@ -105,11 +104,13 @@ class WBStatePen implements WBStateI {
 		case MotionEvent.ACTION_POINTER_2_DOWN:
 		case MotionEvent.ACTION_POINTER_3_DOWN: {
 			int x, y;
-			Log.d(_TAG, "AI(" + ai + ") DOWN");
 			x = (int)me.getX(ai);
 			y = (int)me.getY(ai);
 			if (x < 0 || y < 0)
 				break; // Ignore for unexpected value.
+
+			if (ai >= _AINR)
+				break; // Ignore
 
 			if (0 == _nr_downedpt) {
 				// This is first down action!
@@ -117,9 +118,6 @@ class WBStatePen implements WBStateI {
 				_valid_action = true;
 			}
 			_nr_downedpt++;
-
-			if (ai >= _AINR)
-				break; // Ignore
 
 			if (_nr_downedpt > _AINR) {
 				// Something wrong in motion event.
@@ -130,13 +128,13 @@ class WBStatePen implements WBStateI {
 			_px[ai] = x;
 			_py[ai] = y;
 			_x[ai] = _y[ai] = WConstants.INVALID_COORD_VALUE;
+			_b_first_move = true;
 		} break;
 
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_POINTER_UP:
 		case MotionEvent.ACTION_POINTER_2_UP:
 		case MotionEvent.ACTION_POINTER_3_UP: {
-			Log.d(_TAG, "AI(" + ai + ") UP");
 			_nr_downedpt--;
 			if (_nr_downedpt < 0) {
 				// Something wrong in motion event.
@@ -150,18 +148,16 @@ class WBStatePen implements WBStateI {
 				_board.updateCurve(_points, thick(), color());
 
 			_points.clear();
+			_b_first_move = true;
 		} break;
 
 		case MotionEvent.ACTION_MOVE: {
-			boolean b_pt0_first_move = (_x[0] == WConstants.INVALID_COORD_VALUE);
-
 			if (!_valid_action)
 				break; // ignore invalid move action
 
 			// Max is _AINR
 			int ptnr = (me.getPointerCount() < _AINR)? me.getPointerCount(): _AINR;
 
-			//Log.d(_TAG, "PTNR(" + ptnr + ") MOVE");
 			// Get current (x,y) value.
 			for (int i=0; i < ptnr; i++) {
 				_x[i] = (int)me.getX(i);
@@ -174,9 +170,10 @@ class WBStatePen implements WBStateI {
 				if (_x[0] == _px[0] && _y[0] == _py[0])
 					break; // Invalid 'Move'
 
-				if (b_pt0_first_move)
+				if (_b_first_move)
 					_points.addLast(new G2d.Point(_px[0], _py[0]));
 				_points.addLast(new G2d.Point(_x[0], _y[0]));
+				_b_first_move = false;
 
 				_board.drawLine(_px[0], _py[0], _x[0], _y[0],
 						thick(), color());

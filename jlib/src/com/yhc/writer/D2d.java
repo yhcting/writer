@@ -39,7 +39,7 @@ class D2d {
 	static void drawLine(int[] pixels, int w, int h,
 				int color, byte thick,
 				int x0, int y0, int x1, int y1) {
-		WDev.wassert(thick < WConstants.LIMIT_THICK);
+		//WDev.wassert(thick < WConstants.LIMIT_THICK);
 		_nativeDrawLine(pixels, w, h, color, thick, x0, y0, x1, y1);
 	}
 

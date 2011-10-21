@@ -482,7 +482,7 @@ _add_line(struct list_link*   hd,
 
 void
 wsheet_add_curve(struct wsheet* wsh,
-		 int32_t* pts, uint16_t nrpts,
+		 const int32_t* pts, uint16_t nrpts,
 		 uint8_t  thick,
 		 uint16_t color) {
 
@@ -505,7 +505,7 @@ wsheet_add_curve(struct wsheet* wsh,
 
 	int32_t   x0, y0, x1, y1, itx, ity;
 	int32_t   ri, ci; /* row/column index */
-	int32_t  *pt, *ptend;
+	const int32_t  *pt, *ptend;
 	struct list_link  hd, *phd;
 
 	if (nrpts < 2) {
@@ -525,6 +525,7 @@ wsheet_add_curve(struct wsheet* wsh,
 	x1 = *pt++;
 	y1 = *pt++;
 
+	wlogd("ADD : %d, %d, %d, %d", x0, y0, x1, y1);
 #define __update_division_info(x, y)					\
 	do {								\
 		ci = _divI(x, wsh->divW);				\
@@ -708,7 +709,10 @@ wsheet_draw(struct wsheet* wsh,
 
 	lines_draw_foreach(ld, &lns) {
 		struct linend* ln;
-		linend_foreach(ln, &ld->lns)
+		linend_foreach(ln, &ld->lns) {
+			wlogd("DRAW : %d, %d, %d, %d\n",
+			      ln->ln.p0.x, ln->ln.p0.y,
+			      ln->ln.p1.x, ln->ln.p1.y);
 			draw_line(pixels,
 				  w, h,
 				  _rbg16to32(ld->color),
@@ -717,6 +721,7 @@ wsheet_draw(struct wsheet* wsh,
 				  _round_off(zf * (float)(ln->ln.p0.y - oy)),
 				  _round_off(zf * (float)(ln->ln.p1.x - ox)),
 				  _round_off(zf * (float)(ln->ln.p1.y - oy)));
+		}
 	}
 
 #endif /* CONFIG_DUALCORE */

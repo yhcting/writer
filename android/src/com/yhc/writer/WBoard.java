@@ -36,13 +36,14 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.yhc.writer.G2d.Rect;
 
 class WBoard extends View {
 
@@ -186,7 +187,7 @@ class WBoard extends View {
 		super.onDraw(canvas);
 
 		if (0 != _sw && 0 != _sh) {
-			Rect clip = canvas.getClipBounds();
+			android.graphics.Rect clip = canvas.getClipBounds();
 			canvas.drawBitmap(_pixels,
 					canvas.getWidth() * clip.top + clip.left,
 					canvas.getWidth(),
@@ -215,7 +216,7 @@ class WBoard extends View {
 				// usually from restore....
 				_allocateScreenCanvas(_rar.width(),
 							_rar.height());
-				moveActiveRegionTo(this, _ar.left, _ar.top);
+				moveActiveRegionTo(this, _ar.l, _ar.t);
 			}
 		}
 	}
@@ -355,12 +356,12 @@ class WBoard extends View {
 
 			float rw = _ar.width() / 2.0f;
 			float rh = _ar.height() / 2.0f;
-			_rar.left = WUtil.roundOff(_ar.left + rw - rw / _zov);
-			_rar.top = WUtil.roundOff(_ar.top + rh - rh / _zov);
-			_rar.right = _rar.left + _sw;
-			_rar.bottom = _rar.top + _sh;
+			_rar.l = WUtil.roundOff(_ar.l + rw - rw / _zov);
+			_rar.t = WUtil.roundOff(_ar.t + rh - rh / _zov);
+			_rar.r = _rar.l + _sw;
+			_rar.b = _rar.t + _sh;
 
-			moveActiveRegionTo(this, _ar.left, _ar.top);
+			moveActiveRegionTo(this, _ar.l, _ar.t);
 
 			return true;
 		}
@@ -373,7 +374,7 @@ class WBoard extends View {
 
 	void invalidateBoard(int left, int top, int right, int bottom) {
 		getInvalidateArea(_tmpR, left, top, right, bottom, (byte)_s2c(WConstants.LIMIT_THICK));
-		invalidate(_tmpR);
+		invalidate(WAL.convertFrom(_tmpR));
 	}
 
 	/*
@@ -384,8 +385,8 @@ class WBoard extends View {
 	*/
 
 	void cutoutSheet(int left, int top, int right, int bottom) {
-		_sheet.cutout(_ar.left + _c2s(left), _ar.top + _c2s(top),
-				_ar.left + _c2s(right), _ar.top + _c2s(bottom));
+		_sheet.cutout(_ar.l + _c2s(left), _ar.t + _c2s(top),
+				_ar.l + _c2s(right), _ar.t + _c2s(bottom));
 	}
 
 	void createNew(int width, int height) {
@@ -423,15 +424,18 @@ class WBoard extends View {
 	}
 
 	void saveState(Bundle out) {
-		out.putParcelable(_KEY_AR, _ar);
-		out.putParcelable(_KEY_RAR, _rar);
+		out.putParcelable(_KEY_AR, WAL.convertFrom(_ar));
+		out.putParcelable(_KEY_RAR, WAL.convertFrom(_rar));
 		out.putFloat(_KEY_ZOV, _zov);
 		out.putString(_KEY_STATE, _state.name());
 	}
 
 	void loadState(Bundle in) {
-		_ar = in.getParcelable(_KEY_AR);
-		_rar = in.getParcelable(_KEY_RAR);
+		android.graphics.Rect r = new android.graphics.Rect();
+		r = in.getParcelable(_KEY_AR);
+		_ar.set(WAL.convertTo(r));
+		r = in.getParcelable(_KEY_RAR);
+		_rar.set(WAL.convertTo(r));
 		_zov = in.getFloat(_KEY_ZOV);
 		String name = in.getString(_KEY_STATE);
 
@@ -486,7 +490,7 @@ class WBoard extends View {
 		tmpR.offset(_c2s(dx), _c2s(dy));
 		WUtil.adjust(tmpR, _sheet.boundary());
 
-		moveActiveRegionTo(this, tmpR.left, tmpR.top);
+		moveActiveRegionTo(this, tmpR.l, tmpR.t);
 	}
 
 	void moveActiveRegion(Object trigger_owner, int dx, int dy) {
@@ -495,24 +499,24 @@ class WBoard extends View {
 		tmpR.offset(_c2s(dx), _c2s(dy));
 		WUtil.adjust(tmpR, _sheet.boundary());
 
-		moveActiveRegionTo(this, tmpR.left, tmpR.top);
+		moveActiveRegionTo(this, tmpR.l, tmpR.t);
 	}
 
 	void moveActiveRegionTo(Object trigger_owner, int left, int top) {
-		int dx = left - _ar.left;
-		int dy = top - _ar.top;
+		int dx = left - _ar.l;
+		int dy = top - _ar.t;
 
 		// we just re-calculate all!!!
 		Rect tmpR = _rectA;
 		// till now, we only consider "l, t" value.
 		D2d.fill(_pixels, _sw, _sh, _bgcolor, 0, 0, _sw, _sh); // erase all.
-		tmpR.set(left, top, _ar.right + dx, _ar.bottom + dy);
+		tmpR.set(left, top, _ar.r + dx, _ar.b + dy);
 		_compensateThickness(tmpR, WConstants.LIMIT_THICK);
 		_sheet.draw(_pixels,
 				_sw, _sh,
 				left, top,
-				tmpR.left, tmpR.top,
-				tmpR.right, tmpR.bottom,
+				tmpR.l, tmpR.t,
+				tmpR.r, tmpR.b,
 				_zf());
 
 		_ar.offset(dx, dy);
@@ -521,10 +525,10 @@ class WBoard extends View {
 		if (null != _activie_region_moved_listener) {
 			_activie_region_moved_listener.onMoved(
 					trigger_owner,
-					_ar.left / (float) _sheet.width(),
-					_ar.top / (float) _sheet.height(),
-					_ar.right / (float) _sheet.width(),
-					_ar.bottom / (float) _sheet.height());
+					_ar.l / (float) _sheet.width(),
+					_ar.t / (float) _sheet.height(),
+					_ar.r / (float) _sheet.width(),
+					_ar.b / (float) _sheet.height());
 		}
 	}
 
@@ -535,8 +539,8 @@ class WBoard extends View {
 			G2d.Point               pt;
 			while (iter.hasNext()) {
 				pt = iter.next();
-				pt.x = _c2s(pt.x) + _ar.left;
-				pt.y = _c2s(pt.y) + _ar.top;
+				pt.x = _c2s(pt.x) + _ar.l;
+				pt.y = _c2s(pt.y) + _ar.t;
 			}
 
 			// TODO!!!! ---
@@ -549,12 +553,12 @@ class WBoard extends View {
 		_sheet.draw(_pixels,
 				_sw,
 				_sh,
-				_ar.left,
-				_ar.top,
-				_ar.left + _c2s(_tmpR.left),
-				_ar.top + _c2s(_tmpR.top),
-				_ar.left + _c2s(_tmpR.right),
-				_ar.top + _c2s(_tmpR.bottom),
+				_ar.l,
+				_ar.t,
+				_ar.l + _c2s(_tmpR.l),
+				_ar.t + _c2s(_tmpR.t),
+				_ar.l + _c2s(_tmpR.r),
+				_ar.t + _c2s(_tmpR.b),
 				_zf());
 	}
 
@@ -576,8 +580,8 @@ class WBoard extends View {
 		D2d.fill(_pixels,
 			sw(), sh(),
 			_bgcolor,
-			_tmpR.left, _tmpR.top,
-			_tmpR.right, _tmpR.bottom);
+			_tmpR.l, _tmpR.t,
+			_tmpR.r, _tmpR.b);
 	}
 
 }
