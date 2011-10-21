@@ -1,0 +1,10 @@
+Files
+-----
+    /android
+        Code for Android envionment
+    /jre
+        Code for standard JRE
+    /jlib
+        Common java library - platform(android, swing etc) independent.
+    /lib
+        Native libraries including jni.

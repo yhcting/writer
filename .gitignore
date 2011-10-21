@@ -1,8 +1,8 @@
 .*
 *~
-bin/
-gen/
-obj/
-libs/
-assets/
-src/classes/
+android/bin/
+android/gen/
+android/obj/
+android/libs/
+android/assets/
+android/src/classes/

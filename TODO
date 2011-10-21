@@ -1,11 +1,33 @@
-Memory
-------
-+ Optimization for memory usage.
-+ Handling OOM(Out Of Memory)
+NOTATION
+    P : Priority(hightest 1 ~ 5 Lowest)
 
+Performance Optimization
+------------------------
++ Draw Routibne
+    => improve d2d line_draw routine.
+    => use memory pool for 'lines_draw'
+        : Memory pool for node (nmp_xxx) is not used.
+          Way of nmp can be applied to 'lines_draw'
+
++ SMP optimization
+    => Find lines to draw
+
+Space Optimization
+------------------
++ Optimization for memory usage.
+    => anyway to improve??
+
+Exception Handling
+------------------
++ Handling OOM(Out Of Memory) : every where!
++ File interface (ex. Load/Save)
 
 Refactoring
 -----------
++ Split Java code into two part
+    Platform(Android / PC Java platform) dependency.
+    Platform independent.
+
 + SMP Optimization
     This should be done based on current host system at runtime.
     (At this version, done at compile time with configuration)
@@ -13,4 +35,18 @@ Refactoring
 + Code beautify for SMP optimization.
     Code is not well-structured for SMP optimization.
     Makeing simple framework to use SMP optimzation may be needed??
+
+Features
+--------
++ Java program to run 'writer' on JRE.
++ Networking(Share board(wsheet) between users.)
+    Two options
+        : Centralized Server
+                    C1
+                    |
+             C2-----S-----C3
+        : Network(With my first look, this is better...)
+                     C1
+                   //  \\
+                  C2====C3
 
