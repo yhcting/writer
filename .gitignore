@@ -6,3 +6,5 @@ android/obj/
 android/libs/
 android/assets/
 android/src/classes/
+jlib/bin/
+jre/bin/

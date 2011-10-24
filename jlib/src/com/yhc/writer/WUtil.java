@@ -41,17 +41,29 @@ class WUtil {
 	}
 
 	static final void adjust(Rect nr, int l, int t, int r, int b) {
-		if (nr.l < l)
+		WDev.wassert(nr.width() < (r - l) && nr.height() < (b - t));
+		int w = nr.width();
+		int h = nr.height();
+		if (nr.l < l) {
 			nr.l = l;
+			nr.r = l + w;
+		}
 
-		if (nr.t < t)
+		if (nr.t < t) {
 			nr.t = t;
+			nr.b = t + h;
+		}
 
-		if (nr.r > r)
+		if (nr.r > r) {
 			nr.r = r;
+			nr.l = r - w;
+		}
 
-		if (nr.b > b)
+		if (nr.b > b) {
 			nr.b = b;
+			nr.t = b - h;
+		}
+		WDev.wassert(nr.l >= l && nr.t >= t && nr.r <= r && nr.b <= b);
 	}
 
 	/**
@@ -91,17 +103,28 @@ class WUtil {
 	 * @param nr	: normalized rect
 	 */
 	static final void adjust(RectF nr) {
-		if (nr.l < 0)
+		float w = nr.width();
+		float h = nr.height();
+		if (nr.l < 0) {
 			nr.l = 0;
+			nr.r = w;
+		}
 
-		if (nr.t < 0)
+		if (nr.t < 0) {
 			nr.t = 0;
+			nr.b = h;
+		}
 
-		if (nr.r > 1.0f)
+		if (nr.r > 1.0f) {
 			nr.r = 1.0f;
+			nr.l = nr.r - w;
+		}
 
-		if (nr.b > 1.0f)
+		if (nr.b > 1.0f) {
 			nr.b = 1.0f;
+			nr.t = nr.b - h;
+		}
+		WDev.wassert(nr.l >=0 && nr.t >= 0 && nr.r <= 1.0f && nr.b <= 1.0f);
 	}
 	/**
 	 * @param ppt	: previous values

@@ -525,10 +525,10 @@ class WBoard extends View {
 		if (null != _activie_region_moved_listener) {
 			_activie_region_moved_listener.onMoved(
 					trigger_owner,
-					_ar.l / (float) _sheet.width(),
-					_ar.t / (float) _sheet.height(),
-					_ar.r / (float) _sheet.width(),
-					_ar.b / (float) _sheet.height());
+					_ar.l / (float)_sheet.width(),
+					_ar.t / (float)_sheet.height(),
+					_ar.r / (float)_sheet.width(),
+					_ar.b / (float)_sheet.height());
 		}
 	}
 

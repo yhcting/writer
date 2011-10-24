@@ -34,6 +34,7 @@ import com.yhc.writer.G2d.RectF;
 class WMiniMap extends View {
 	private int _sw = 0, _sh = 0;
 	private final RectF _nar = new RectF(); // normalized active rect
+	private final RectF _rectFA = new RectF(); // space to use to avoid too frequent new/GC.
 	private final Paint _paint;
 	private OnActiveRegionMoved_Listener _activie_region_moved_listener = null;
 
@@ -63,7 +64,9 @@ class WMiniMap extends View {
 	}
 
 	void moveActiveRegionTo(Object trigger_owner, float nleft, float ntop, float nright, float nbottom) {
-		WDev.wassert(nleft < nright && ntop < nbottom);
+		WDev.wassert(nleft < nright && ntop < nbottom
+				&& ntop >= 0 && nleft >= 0
+				&& nright <= 1 && nbottom <= 1);
 		_nar.set(nleft, ntop, nright, nbottom);
 		invalidate();
 		if (null != _activie_region_moved_listener) {
@@ -107,7 +110,7 @@ class WMiniMap extends View {
 		case MotionEvent.ACTION_MOVE: {
 			float x = _normalizeX(me.getX()), y = _normalizeY(me.getY());
 			float w = _nar.width(), h = _nar.height();
-			RectF nr = new RectF();
+			RectF nr = _rectFA;
 			nr.l = x - w / 2;
 			nr.t = y - h / 2;
 			nr.r = nr.l + w;
