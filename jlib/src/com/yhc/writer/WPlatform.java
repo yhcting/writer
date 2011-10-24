@@ -18,37 +18,21 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-// WAL (Writer Abstraction Layer)
-// This is abstraction layer between Android platform and java and native library.
-
 package com.yhc.writer;
 
-import android.graphics.Rect;
-import android.util.Log;
-
-// This is singleton.
-class WAL implements WPlatform.IAL {
-	static WAL _instance = null;
-
-	WAL() {
+class WPlatform {
+	// Abstraction Layer interface.
+	interface IAL {
+		void log(String prefix, String msg);
 	}
 
-	static WAL instance() {
-		if (null == _instance)
-			_instance = new WAL();
+	private static IAL _al = null;
 
-		return _instance;
+	static void setAL(IAL al) {
+		_al = al;
 	}
 
-	static Rect convertFrom(G2d.Rect r) {
-		return new Rect(r.l, r.t, r.r, r.b);
-	}
-
-	static G2d.Rect convertTo(Rect r) {
-		return new G2d.Rect(r.left, r.top, r.right, r.bottom);
-	}
-
-	public void log(String prefix, String msg) {
-		Log.d("Writer", prefix + msg);
+	static void log(String prefix, String msg) {
+		_al.log(prefix, msg);
 	}
 }

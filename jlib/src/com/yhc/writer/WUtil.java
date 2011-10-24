@@ -20,10 +20,33 @@
 
 package com.yhc.writer;
 
+import java.lang.reflect.Method;
+
 import com.yhc.writer.G2d.Rect;
 import com.yhc.writer.G2d.RectF;
 
 class WUtil {
+	  static void invokeStatic(String aClass, String aMethod, Class[] params, Object[] args) {
+		try {
+			Class c = Class.forName(aClass);
+			Method m = c.getDeclaredMethod(aMethod, params);
+			Object r = m.invoke(null, args);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	  }
+
+	  static void invoke(String aClass, String aMethod, Class[] params, Object[] args) {
+		try {
+			Class c = Class.forName(aClass);
+			Method m = c.getDeclaredMethod(aMethod, params);
+			Object i = c.newInstance();
+			Object r = m.invoke(i, args);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	  }
+
 	static float min(float x, float y) {
 		return (x > y) ? y : x;
 	}

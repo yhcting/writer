@@ -20,6 +20,7 @@
 
 package com.yhc.writer;
 
+
 // import android.util.Log;
 
 class WDev {
@@ -28,7 +29,7 @@ class WDev {
 	static final boolean __DEBUG__	= true;
 	static final boolean __TEST__	= false;
 
-	private static final int _LOG_LEVEL = 1;
+	private static final int _LOG_LEVEL = 5;
 
 	static void wassert(boolean cond, String msg) {
 		if (__DEBUG__) {
@@ -43,14 +44,12 @@ class WDev {
 	}
 
 	static void log(int level, String string) {
-		/*
 		if (__DEBUG__ && _LOG_LEVEL <= level)
-			Log.d("[Writer]", string);
-		*/
+			WPlatform.log("", string);
 	}
 
 	/**
-	 * This function is used only to increase readibility
+	 * This function is used only to increase readability
 	 */
 	static void unused_parameter(Object o) {
 	}

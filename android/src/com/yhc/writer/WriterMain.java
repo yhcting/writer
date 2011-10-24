@@ -491,6 +491,9 @@ public class WriterMain extends Activity {
 		//if (null != savedInstanceState)
 		//	WDev.log(1, "    => " + savedInstanceState.toString());
 
+		// set Abstraction Layer for this platform to use shared java library.
+		WPlatform.setAL(WAL.instance());
+
 		_prepare();
 
 		setContentView(R.layout.main);
