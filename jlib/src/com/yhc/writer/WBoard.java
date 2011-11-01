@@ -75,7 +75,7 @@ class WBoard {
 	 ******************************/
 	private enum _State {
 		PEN,
-		ERASE;
+		ERASER;
 
 		private WBStateI	_inst;
 		private String          _clsname;
@@ -234,8 +234,8 @@ class WBoard {
 		return _State.PEN.getInstance();
 	}
 
-	WBStateI eraseState() {
-		return _State.PEN.getInstance();
+	WBStateI eraserState() {
+		return _State.ERASER.getInstance();
 	}
 
 
@@ -250,7 +250,7 @@ class WBoard {
 	void init(Plat platboard, String pencls, String erasercls) {
 		_platboard = platboard;
 		_State.PEN.init(platboard, pencls);
-		_State.ERASE.init(platboard, erasercls);
+		_State.ERASER.init(platboard, erasercls);
 		_state = _State.PEN.getInstance();
 	}
 

@@ -210,7 +210,7 @@ class WBoardPlat extends View implements WBoard.Plat {
 	}
 
 	void penThick(byte thick) {
-		((WBStatePenPlat)_bpi.eraseState()).thick(thick);
+		((WBStatePenPlat)_bpi.penState()).thick(thick);
 	}
 
 	int bgcolor() {
@@ -221,7 +221,7 @@ class WBoardPlat extends View implements WBoard.Plat {
 	}
 
 	byte penThick() {
-		return ((WBStatePenPlat)_bpi.eraseState()).thick();
+		return ((WBStatePenPlat)_bpi.penState()).thick();
 	}
 
 	boolean zoom(float zov) {

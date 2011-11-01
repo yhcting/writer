@@ -1,7 +1,11 @@
 package com.yhc.writer;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+
+import com.yhc.writer.G2d.Rect;
 
 
 // TODO
@@ -10,6 +14,7 @@ import java.awt.event.MouseWheelEvent;
 //
 class WBStatePenPlat implements WBStateI {
 	private WBStatePen	_st = null;
+	private WBStateEraser   _ste = null; // eraser...
 	private WBoardPlat      _board = null;
 
 	private int		_btn_captured = MouseEvent.NOBUTTON;
@@ -33,15 +38,15 @@ class WBStatePenPlat implements WBStateI {
 	}
 
 	private void onMouse2_press(int x, int y) {
-		_st.onActionStart();
+		_ste.onActionStart(x, y);
 	}
 
 	private void onMouse2_drag(int x0, int y0, int x1, int y1) {
-		_st.onActionLine(x0, y0, x1, y1);
+		_ste.onActionMove(x1, y1);
 	}
 
 	private void onMouse2_release(int x, int y) {
-		_st.onActionEnd();
+		_ste.onActionEnd();
 	}
 
 	private void onMouse3_press(int x, int y) {
@@ -60,6 +65,10 @@ class WBStatePenPlat implements WBStateI {
 	public WBStatePenPlat(Object boardplat) {
 		_board = (WBoardPlat)boardplat;
 		_st = new WBStatePen(_board.bpi());
+	}
+
+	void setEraser(WBStateEraser eraser) {
+		_ste = eraser;
 	}
 
 	@Override
@@ -164,5 +173,14 @@ class WBStatePenPlat implements WBStateI {
 
 	@Override
 	public void draw(Object o) {
+		if (MouseEvent.BUTTON2 == _btn_captured) {
+			// This is eraser state...
+			Graphics g = (Graphics)o;
+			if (!_ste.track().isEmpty()) {
+				Rect r = _ste.track();
+				g.setXORMode(Color.white);
+				g.drawRect(r.l, r.t, r.width(), r.height());
+			}
+		}
 	}
 }

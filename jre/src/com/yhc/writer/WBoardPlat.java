@@ -138,8 +138,10 @@ ComponentListener
 		if (_bfirst_after_draw < 0)
 			_bfirst_after_draw = 0;
 
-		if (_bfirst_after_draw > 0)
+		if (_bfirst_after_draw > 0) {
 			g.drawImage(_bdimg, 0, 0, null);
+			_bpi.onDraw(g);
+		}
 	}
 	/**************************
 	 * Implements interfaces.
@@ -163,6 +165,10 @@ ComponentListener
 		_bpi = new WBoard();
 		_bpi.init(this, WBStatePenPlat.class.getName(), WBStateEraserPlat.class.getName());
 
+
+		WBStatePenPlat pen = (WBStatePenPlat)_bpi.penState();
+		pen.setEraser(((WBStateEraserPlat)_bpi.eraserState()).stpi());
+
 		_wf = w;
 		_hf = h;
 
@@ -184,23 +190,9 @@ ComponentListener
 	int sheetHeight() {
 		return _bpi.sheetHeight();
 	}
-	void penColor(int color) {
-		((WBStatePen)_bpi.penState()).color(color);
-	}
-
-	void penThick(byte thick) {
-		((WBStatePen)_bpi.eraseState()).thick(thick);
-	}
 
 	int bgcolor() {
 		return _bpi.bgcolor();
-	}
-	int penColor() {
-		return ((WBStatePen)_bpi.penState()).color();
-	}
-
-	byte penThick() {
-		return ((WBStatePen)_bpi.eraseState()).thick();
 	}
 
 	boolean zoom(float zov) {

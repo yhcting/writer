@@ -10,6 +10,11 @@ class WBStateEraserPlat implements WBStateI {
 		_st = new WBStateEraser(_board.bpi());
 	}
 
+	// STate Platform Independent.
+	WBStateEraser stpi() {
+		return _st;
+	}
+
 	@Override
 	public String name() {
 		return this.getClass().getName();
