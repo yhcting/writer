@@ -43,11 +43,9 @@ Java_com_yhc_writer_D2d__1nativeFill(JNIEnv* env, jclass jclazz,
 				     jintArray jarr, jint w, jint h,
 				     jint color,
 				     jint l, jint t, jint r, jint b) {
-	jint* pixels = (*env)->GetIntArrayElements(env, jarr, NULL);
-
+	jint* pixels = wjni_get_int_array_direct(env, jarr);
 	fill_rect(pixels, w, h, color, l, t, r, b);
-
-	(*env)->ReleaseIntArrayElements(env, jarr, pixels, JNI_ABORT);
+	wjni_release_int_array_direct(env, jarr, pixels);
 }
 
 /*
@@ -61,17 +59,15 @@ Java_com_yhc_writer_D2d__1nativeCopy(JNIEnv* env, jclass jclazz,
 				     jint dw, jint dh, jint dl, jint dt,
 				     jint sw, jint sh, jint sl, jint st,
 				     jint width, jint height) {
-	jint* dst_pixels = (*env)->GetIntArrayElements(env, jarr_dst, NULL);
-	jint* src_pixels = (*env)->GetIntArrayElements(env, jarr_src, NULL);
 
+	jint* dst_pixels = wjni_get_int_array_direct(env, jarr_dst);
+	jint* src_pixels = wjni_get_int_array_direct(env, jarr_src);
 	copy_rect(dst_pixels, src_pixels,
 		  dw, dh, dl, dt,
 		  sw, sh, sl, st,
 		  width, height);
-
-	(*env)->ReleaseIntArrayElements(env, jarr_dst, dst_pixels, JNI_ABORT);
-	(*env)->ReleaseIntArrayElements(env, jarr_src, src_pixels, JNI_ABORT);
-
+	wjni_release_int_array_direct(env, jarr_dst, dst_pixels);
+	wjni_release_int_array_direct(env, jarr_src, src_pixels);
 }
 
 /*
@@ -85,10 +81,8 @@ Java_com_yhc_writer_D2d__1nativeDrawLine(JNIEnv* env, jclass jclazz,
 					   jint color, jbyte thick,
 					   jint x0, jint y0,
 					   jint x1, jint y1) {
-	jint* pixels = (*env)->GetIntArrayElements(env, jarr, NULL);
 
+	jint* pixels = wjni_get_int_array_direct(env, jarr);
 	draw_line(pixels, w, h, color, thick, x0, y0, x1, y1);
-
-	(*env)->ReleaseIntArrayElements(env, jarr, pixels, JNI_ABORT);
-
+	wjni_release_int_array_direct(env, jarr, pixels);
 }

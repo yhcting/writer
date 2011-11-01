@@ -180,9 +180,8 @@ class WSelector extends RelativeLayout {
 		for (int i = N - 1; i >= 0; i--) {
 			v = _item_root.getChildAt(i);
 			WDev.wassert(null != v);
-			if (_cover == v) {
-				continue;
-			} // ignore ghost view
+			if (_cover == v)
+				continue; // ignore ghost view
 
 			r.set(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
 			if (r.contains(x, y)) {
@@ -191,9 +190,8 @@ class WSelector extends RelativeLayout {
 						return ((Item) v).isContain(x, y) ? v : null;
 					else
 						return v;
-				} else {
+				} else
 					return null;
-				}
 			}
 		}
 		return null;
@@ -279,10 +277,7 @@ class WSelector extends RelativeLayout {
 	 *         item before "ACTION")
 	 */
 	boolean isIn(View item) {
-		if (0 > _find(item))
-			return false;
-		else
-			return true;
+		return (0 > _find(item))? false: true;
 	}
 
 	View originalItem() {
@@ -318,10 +313,7 @@ class WSelector extends RelativeLayout {
 
 	boolean touch(int at) {
 		View v = _item_root.getChildAt(at);
-		if (null != v)
-			return touch(v);
-		else
-			return false;
+		return (null != v)? touch(v): false;
 	}
 
 	boolean touch(View item) {
@@ -337,10 +329,7 @@ class WSelector extends RelativeLayout {
 
 	boolean select(int at) {
 		View v = _item_root.getChildAt(at);
-		if (null != v)
-			return select(v);
-		else
-			return false;
+		return (null != v)? select(v): false;
 	}
 
 	boolean select(View item) {

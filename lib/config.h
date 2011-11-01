@@ -21,6 +21,12 @@
 #ifndef __CONFIg_h__
 #define __CONFIg_h__
 
+
+/*
+ * CONFIG_TEST_EXECUTABLE, CONFIG_ANDROID
+ *   will be set at make file according to purpose.
+ */
+
 /*
  * Code for unit test executable.
  */
@@ -29,10 +35,10 @@
 /*
  * Android library
  */
-#define CONFIG_ANDROID
+/* #define CONFIG_ANDROID */
 
 
-#define CONFIG_DEBUG
+/* #define CONFIG_DEBUG */
 
 /*
  * For ARM specific optimization!

@@ -71,7 +71,7 @@ public class WriterMain extends Activity {
 	private int _hboard_size	= 0;
 
 	// pre-calculated/assigned. vaule.
-	private WBoard		_board;
+	private WBoardPlat _board;
 
 	/******************************
 	 * Types
@@ -82,9 +82,8 @@ public class WriterMain extends Activity {
 	 **************************/
 	private void _prepare() {
 		File d = new File(_WSHEET_DIRECTORY);
-		if (!d.exists()) {
+		if (!d.exists())
 			d.mkdirs();
-		}
 	}
 
 	private void _saveSheet(String fpath) {
@@ -151,13 +150,10 @@ public class WriterMain extends Activity {
 
 					if (ex < 0)
 						ex = 0;
-
 					if (ex >= v.getWidth())
 						ex = v.getWidth() - 1;
-
 					if (ey < 0)
 						ey = 0;
-
 					if (ey >= v.getHeight())
 						ey = v.getHeight() - 1;
 
@@ -225,9 +221,8 @@ public class WriterMain extends Activity {
 			}
 		});
 
-		if (null != _last_saved) {
+		if (null != _last_saved)
 			((EditText) d.findViewById(R.id.edit)).setText(_last_saved);
-		}
 
 		((Button) d.findViewById(R.id.ok)).setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
@@ -388,7 +383,8 @@ public class WriterMain extends Activity {
 	private void _onPenSelected(int color, byte thick) {
 		// NOTE :
 		// thick starts from 0
-		_board.penColor(color).penThick(thick);
+		_board.penColor(color);
+		_board.penThick(thick);
 
 	}
 
@@ -410,11 +406,10 @@ public class WriterMain extends Activity {
 
 	private void _activate(ImageView v, boolean bActivate) {
 		v.setClickable(bActivate);
-		if (bActivate) {
+		if (bActivate)
 			v.setAlpha(WConstants.ACTIVE_ICON_ALPHA);
-		} else {
+		else
 			v.setAlpha(WConstants.INACTIVE_ICON_ALPHA);
-		}
 		v.invalidate();
 	}
 
@@ -442,43 +437,39 @@ public class WriterMain extends Activity {
 		// Set selector
 		ws.register_onSelected(new WSelector.OnSelected_Listener() {
 			public void onSelect(View v) {
-				if (null != v) {
+				if (null != v)
 					_board.setState(WriterMain.this, ((WToolSelectorItem)v).getStateClass());
-				}
 			}
 		});
 		_touchTool(ws, WBStatePen.class.getName());
 
 		// Listeners
-		_board.registerListener(new WBoard.OnActiveRegionMoved_Listener() {
+		_board.registerListener(new WBoardPlat.OnActiveRegionMoved_Listener() {
 			public void onMoved(Object trigger_owner,
 					float nleft,
 					float ntop,
 					float nright,
 					float nbottom) {
-				if (trigger_owner != WriterMain.this) {
+				if (trigger_owner != WriterMain.this)
 					minimap.moveActiveRegionTo(WriterMain.this,
 									nleft, ntop, nright, nbottom);
-				}
 			}
 		});
 
-		_board.registerListener(new WBoard.OnStateChanged_Listener() {
+		_board.registerListener(new WBoardPlat.OnStateChanged_Listener() {
 			public void onChanged(Object trigger_owner, WBStateI state) {
-				if (trigger_owner != WriterMain.this) {
+				if (trigger_owner != WriterMain.this)
 					_touchTool(ws, state.getClass().getName());
-				}
 			}
 		});
 
 		minimap.registerListener(new WMiniMap.OnActiveRegionMoved_Listener() {
 			public void onMoved(Object trigger_owner, float nleft, float ntop) {
-				if (trigger_owner != WriterMain.this) {
+				if (trigger_owner != WriterMain.this)
 					_board.moveActiveRegionTo(
 							WriterMain.this,
 							(int) (nleft * _board.sheetWidth()),
 							(int) (ntop * _board.sheetHeight()));
-				}
 			}
 		});
 	}
@@ -498,8 +489,12 @@ public class WriterMain extends Activity {
 
 		setContentView(R.layout.main);
 
-		_board = (WBoard) findViewById(R.id.board);
-		_board.initBoard();
+		_board = (WBoardPlat)findViewById(R.id.board);
+		_board.initBoard(new WBoardPlat.OnBoardPlat_Listener() {
+			public void onInitialized() {
+				; // do nothing
+			}
+		});
 
 		{ // Just scope - Board
 			// TODO :
@@ -519,18 +514,15 @@ public class WriterMain extends Activity {
 		} // Just scope
 		_createMinimap();
 
-		// Image Buttons
-		_activate((ImageButton) findViewById(R.id.pen_select_btn), true);
-
-		// ===========================
 		// Apply preference...
-		{ // Just scope
-			// Restore preferences
-			SharedPreferences settings = getSharedPreferences(WConstants.PREF_NAME, 0);
-			_board.penColor(settings.getInt(_PEN_COLOR, Color.BLACK))
-					.penThick((byte)settings.getInt(_PEN_THICK, 0));
-		} // Just scope
+		// Restore preferences
+		SharedPreferences settings = getSharedPreferences(WConstants.PREF_NAME, 0);
+		_board.penColor(settings.getInt(_PEN_COLOR, Color.BLACK));
+		_board.penThick((byte)settings.getInt(_PEN_THICK, 0));
 
+		WSelector ws = (WSelector)findViewById(R.id.tool_selector);
+		// default is 0-th tool => pen.
+		ws.touch(0);
 	}
 
 	@Override

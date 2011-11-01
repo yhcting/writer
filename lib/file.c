@@ -53,7 +53,7 @@ static const uint32_t _magicnr[] = {
 static void
 _wcurve(FILE* fp, const struct curve* crv) {
 	const struct point *p, *pe;
-#define _FW(vAL)  fwrite(&(vAL), sizeof(vAL), 1, fp)
+#define _FW(vAL)  if (1 != fwrite(&(vAL), sizeof(vAL), 1, fp)) { wassert(0); }
 
 	_FW(crv->nrpts);
 	_FW(crv->color);
@@ -81,7 +81,7 @@ _rcurve(FILE* fp) {
 	uint16_t      nrpts;
 	struct point *p, *pe;
 
-#define _FR(vAL)  fread(&(vAL), sizeof(vAL), 1, fp)
+#define _FR(vAL)  if (1 != fread(&(vAL), sizeof(vAL), 1, fp)) { wassert(0); }
 
 	_FR(nrpts);
 	crv = crv_create(nrpts);
@@ -116,7 +116,7 @@ file_save_wsheet(FILE* fp, const struct wsheet* wsh) {
 	uint32_t      nrcrv = 0;
 	long          fpos;
 
-#define _FW(vAL)  fwrite(&(vAL), sizeof(vAL), 1, fp)
+#define _FW(vAL)  if (1 != fwrite(&(vAL), sizeof(vAL), 1, fp)) { wassert(0); }
 
 	for (i = 0; i < arrsz(_magicnr); i++)
 		_FW(_magicnr[i]);
@@ -150,7 +150,7 @@ file_load_wsheet(FILE* fp, struct wsheet* wsh) {
 	int           i;
 	uint32_t      m;
 
-#define _FR(vAL)  fread(&(vAL), sizeof(vAL), 1, fp);
+#define _FR(vAL)  if (1 != fread(&(vAL), sizeof(vAL), 1, fp)) { wassert(0); }
 
 	for (i = 0; i < arrsz(_magicnr); i++) {
 		m = 0; /* 0 is NOT one of magic number */

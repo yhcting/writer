@@ -4,7 +4,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
-    <com.yhc.writer.WBoard
+    <com.yhc.writer.WBoardPlat
         android:id="@+id/board"
         android:background="@drawable/board_color"
         android:layout_width="fill_parent"
@@ -65,13 +65,13 @@
                     android:layout_height="wrap_content"
                     >
                     <com.yhc.writer.WToolSelectorItem
-                        writer:myclass="com.yhc.writer.WBStatePen"
+                        writer:myclass="com.yhc.writer.WBStatePenPlat"
                         android:layout_marginBottom="5dip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         />
                     <com.yhc.writer.WToolSelectorItem
-                        writer:myclass="com.yhc.writer.WBStateErase"
+                        writer:myclass="com.yhc.writer.WBStateEraserPlat"
                         android:layout_marginBottom="5dip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

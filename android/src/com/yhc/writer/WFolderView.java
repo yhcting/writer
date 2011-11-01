@@ -29,17 +29,17 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class WFolderView extends ListActivity {
 	private static final int _CONTEXT_MENU_DELETE = 0;
@@ -83,15 +83,15 @@ public class WFolderView extends ListActivity {
 
 		public View getView(int position, View convertView, ViewGroup parent) {
 			ViewGroup vg;
-			if (convertView == null) {
+			if (convertView == null)
 				vg = (ViewGroup) LayoutInflater
 							.from(_context)
 							.inflate(R.layout.folder_view_item,
 								parent,
 								false);
-			} else {
+			else
 				vg = (ViewGroup) convertView;
-			}
+
 			int last_dot = _fs[position].getName().lastIndexOf(".");
 			WDev.wassert(last_dot < _fs[position].getName().length());
 			((TextView) vg.findViewById(R.id.text))
@@ -117,9 +117,8 @@ public class WFolderView extends ListActivity {
 		_dir = i.getData().getPath();
 		_ext = b.getString("extention");
 
-		if (!_dir.endsWith("/")) {
+		if (!_dir.endsWith("/"))
 			_dir = _dir + "/"; // directory name should be ended with "/"
-		}
 
 		_files = _fileList(_dir, _ext);
 
@@ -159,11 +158,10 @@ public class WFolderView extends ListActivity {
 			if (f.delete()) {
 				_files = _fileList(_dir, _ext);
 				setListAdapter(new _FVAdapter(this, _files));
-			} else {
+			} else
 				Toast.makeText(this,
 						R.string.delete_file_fails,
 						Toast.LENGTH_LONG).show();
-			}
 		} return true;
 
 		default:

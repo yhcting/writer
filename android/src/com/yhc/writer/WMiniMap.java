@@ -69,9 +69,8 @@ class WMiniMap extends View {
 				&& nright <= 1 && nbottom <= 1);
 		_nar.set(nleft, ntop, nright, nbottom);
 		invalidate();
-		if (null != _activie_region_moved_listener) {
+		if (null != _activie_region_moved_listener)
 			_activie_region_moved_listener.onMoved(trigger_owner, nleft, ntop);
-		}
 	}
 
 	/**
@@ -94,13 +93,12 @@ class WMiniMap extends View {
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		super.onLayout(changed, l, t, r, b);
-		if (changed) {
+		if (changed)
 			if (0 == _sw && 0 == _sh) {
 				// This should not be called more than once!!!
 				_sw = r - l;
 				_sh = b - t;
 			}
-		}
 	}
 
 	@Override
@@ -117,9 +115,8 @@ class WMiniMap extends View {
 			nr.b = nr.t + h;
 			WUtil.adjust(nr);
 			WDev.wassert(nr.l < nr.r && nr.t < nr.b);
-			if (null != _activie_region_moved_listener) {
+			if (null != _activie_region_moved_listener)
 				_activie_region_moved_listener.onMoved(this, nr.l, nr.t);
-			}
 			_nar.set(nr);
 		} break;
 

@@ -36,13 +36,13 @@ void
 div_clean(struct div* div) {
 	struct curve *n, *tmp;
 	/* clean lines */
-	list_foreach_item_removal_safe(n, tmp, &div->crvs, struct curve, lk)
+	list_foreach_item_safe(n, tmp, &div->crvs, struct curve, lk)
 		crv_destroy(n);
 
 	list_init_link(&div->crvs);
 
 #if 0
-	list_foreach_item_removal_safe(n, tmp, &div->objs, struct curve, lk)
+	list_foreach_item_safe(n, tmp, &div->objs, struct curve, lk)
 		_del_obj_node_deep(div, n);
 
 	list_init_link(&div->objs);
@@ -90,7 +90,7 @@ div_cutout(struct div* div,
 	list_init_link(&in);
 	list_init_link(&out);
 
-	crv_foreach_removal_safe(crv, tmp, &div->crvs) {
+	crv_foreach_safe(crv, tmp, &div->crvs) {
 		crv_split(crv, &in, &out, l, t, r, b);
 		/*
 		 * replace 'crv' with out-curve-list in the list.

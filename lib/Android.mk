@@ -23,4 +23,10 @@ LOCAL_SRC_FILES := \
 
 LOCAL_LDLIBS := -lc -llog
 
+LOCAL_CFLAGS := \
+	-O2 \
+	-Wall \
+	-DCONFIG_ANDROID \
+	-D_GNU_SOURCE
+
 include $(BUILD_SHARED_LIBRARY)

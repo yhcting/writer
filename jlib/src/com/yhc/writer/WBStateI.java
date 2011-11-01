@@ -20,11 +20,10 @@
 
 package com.yhc.writer;
 
-import android.graphics.Canvas;
-import android.view.MotionEvent;
-
 interface WBStateI {
 	String	name();
-	boolean onTouch(MotionEvent me);
-	void	draw(Canvas canvas);
+	//boolean onTouch(MotionEvent me);
+	//void	draw(Canvas canvas);
+	boolean onTouch(Object me);
+	void	draw(Object canvas);
 }

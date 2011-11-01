@@ -18,25 +18,20 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
+
 package com.yhc.writer;
 
-import java.util.LinkedList;
-
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.util.Log;
 import android.view.MotionEvent;
 
-class WBStatePen implements WBStateI {
-	private static final String	_TAG	= "WBStatePen";
-	private static final int	_ICON	= R.drawable.pen;
+public class WBStatePenPlat implements WBStateI {
+	private static final String	_TAG	= "WBStatePenPlat";
+	private static final int        _ICON   = R.drawable.pen;
+
 	// UI values
 	private static final int	_AINR	= 3; // Action Index NR;
 
-	private WBoard		_board = null;
-	private byte		_thick = 4;
-	private int		_color = Color.BLACK; // black
-
+	private WBStatePen	_st = null;
 	//  Why this flags is required!
 	//  We cannot know which point is motioned in multi-touch.
 	//  So, changing between multi-points-motions
@@ -45,28 +40,20 @@ class WBStatePen implements WBStateI {
 	//  To avoid this, motions only from first 'down' to first 'up', are regarded as 'VALID'
 	private boolean		_valid_action = false;
 	// To start to save points at first MOVE event (NOT first DOWN event!)
-	private boolean         _b_first_move = true;
 	private int		_nr_downedpt = 0; // number of downed-point.
 	private int[]		_px, _py; // previous position
 	private int[]		_x,  _y;  // current event position - to avoid too-frequent-'new' operation.
-	private LinkedList<G2d.Point> _points	= new LinkedList<G2d.Point>();
-
 
 	// set public to access dynamically through 'Class' class
+	// This is used at WToolSectorItem.
 	public static int getIcon() {
 		return _ICON;
 	}
 
-	@Override
-	public String name() {
-		return this.getClass().getName();
-	}
-
 	// set public to access dynamically through 'Class' class
-	public WBStatePen(WBoard board) {
-		WDev.wassert(null != board);
-		_board = board;
-
+	public WBStatePenPlat(Object boardplat) {
+		WBoardPlat wbp = (WBoardPlat)boardplat;
+		_st = new WBStatePen(wbp.bpi());
 		// pre-allocated _x, _y is used to avoid frequent 'new' operation
 		_x = new int[_AINR];
 		_y = new int[_AINR];
@@ -76,26 +63,30 @@ class WBStatePen implements WBStateI {
 		_py= new int[_AINR];
 	}
 
-	WBStateI thick(byte thick) {
-		_thick = thick;
-		return this;
+	void color(int color) {
+		_st.color(color);
 	}
 
-	WBStateI color(int color) {
-		_color = color;
-		return this;
-	}
-
-	byte thick() {
-		return _thick;
+	void thick(byte thick) {
+		_st.thick(thick);
 	}
 
 	int color() {
-		return _color;
+		return _st.color();
+	}
+
+	byte thick() {
+		return _st.thick();
 	}
 
 	@Override
-	public boolean onTouch(MotionEvent me) {
+	public String name() {
+		return this.getClass().getName();
+	}
+
+	@Override
+	public boolean onTouch(Object meo) {
+		MotionEvent me = (MotionEvent)meo;
 		int ai = me.getActionIndex();
 
 		switch (me.getAction()) {
@@ -112,23 +103,23 @@ class WBStatePen implements WBStateI {
 			if (ai >= _AINR)
 				break; // Ignore
 
-			if (0 == _nr_downedpt) {
+			if (0 == _nr_downedpt)
 				// This is first down action!
 				// So, from now on, actions are valid.
 				_valid_action = true;
-			}
+
 			_nr_downedpt++;
 
-			if (_nr_downedpt > _AINR) {
+			if (_nr_downedpt > _AINR)
 				// Something wrong in motion event.
 				// Fix it up!
 				_nr_downedpt = _AINR;
-			}
 
 			_px[ai] = x;
 			_py[ai] = y;
 			_x[ai] = _y[ai] = WConstants.INVALID_COORD_VALUE;
-			_b_first_move = true;
+
+			_st.onActionStart();
 		} break;
 
 		case MotionEvent.ACTION_UP:
@@ -136,19 +127,15 @@ class WBStatePen implements WBStateI {
 		case MotionEvent.ACTION_POINTER_2_UP:
 		case MotionEvent.ACTION_POINTER_3_UP: {
 			_nr_downedpt--;
-			if (_nr_downedpt < 0) {
+			if (_nr_downedpt < 0)
 				// Something wrong in motion event.
 				// Fix it up!
 				_nr_downedpt = 0;
-			}
+
 			_valid_action = false;
 			_x[ai] = _y[ai] = WConstants.INVALID_COORD_VALUE;
 
-			if (_points.size() > 1)
-				_board.updateCurve(_points, thick(), color());
-
-			_points.clear();
-			_b_first_move = true;
+			_st.onActionEnd();
 		} break;
 
 		case MotionEvent.ACTION_MOVE: {
@@ -166,21 +153,8 @@ class WBStatePen implements WBStateI {
 
 			switch (me.getPointerCount()) {
 			case 1: {
-				// Draw with Pen.
-				if (_x[0] == _px[0] && _y[0] == _py[0])
-					break; // Invalid 'Move'
+				_st.onActionLine(_px[0], _py[0], _x[0], _y[0]);
 
-				if (_b_first_move)
-					_points.addLast(new G2d.Point(_px[0], _py[0]));
-				_points.addLast(new G2d.Point(_x[0], _y[0]));
-				_b_first_move = false;
-
-				_board.drawLine(_px[0], _py[0], _x[0], _y[0],
-						thick(), color());
-				_board.invalidateBoard(WUtil.min(_x[0], _px[0]),
-							WUtil.min(_y[0], _py[0]),
-							WUtil.max(_x[0], _px[0]),
-							WUtil.max(_y[0], _py[0]));
 			} break;
 
 			case 2: {
@@ -192,7 +166,7 @@ class WBStatePen implements WBStateI {
 
 				d1 = java.lang.Math.sqrt(d1);
 				d2 = java.lang.Math.sqrt(d2);
-				_board.zoom((float)(d1/d2));
+				_st.onActionZoom((float)(d1/d2));
 			} break;
 
 			// Over 3
@@ -201,7 +175,7 @@ class WBStatePen implements WBStateI {
 				int dx, dy;
 				dx = WUtil.averageDelta(_px, _x, ptnr);
 				dy = WUtil.averageDelta(_py, _y, ptnr);
-				_board.moveActiveRegion(this, -dx, -dy);
+				_st.onActionMove(-dx, -dy);
 			}
 			}
 
@@ -219,6 +193,6 @@ class WBStatePen implements WBStateI {
 	}
 
 	@Override
-	public void draw(Canvas canvas) {
+	public void draw(Object canvas) {
 	}
 }

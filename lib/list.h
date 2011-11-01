@@ -128,7 +128,7 @@ list_link(struct list_link* prev, struct list_link* next) {
 #define list_foreach(pos, head)					\
         for ((pos) = (head)->_next; (pos) != (head); (pos) = (pos)->_next)
 
-#define list_foreach_backward(pos, head)				\
+#define list_foreach_bw(pos, head)				\
         for ((pos) = (head)->_prev; (pos) != (head); (pos) = (pos)->_prev)
 
 /**
@@ -136,14 +136,14 @@ list_link(struct list_link* prev, struct list_link* next) {
  * @n       : another &struct list_link to use as temporary storage
  * @head    : head of list (&struct list_link)
  */
-#define list_foreach_removal_safe(pos, n, head)	\
+#define list_foreach_safe(pos, n, head)			\
         for ((pos) = (head), (n) = (pos)->_next;	\
 	     (pos) != (head);				\
 	     (pos) = (n), (n) = (pos)->_next)
 
-#define list_foreach_removal_safe_backward(pos, n, head)	\
-        for ((pos) = (head), (n) = (pos)->_prev;		\
-	     (pos) != (head);					\
+#define list_foreach_safe_bw(pos, n, head)		\
+        for ((pos) = (head), (n) = (pos)->_prev;	\
+	     (pos) != (head);				\
 	     (pos) = (n), (n) = (pos)->_prev)
 /**
  * @pos     : the @type* to use as a loop cursor.
@@ -156,7 +156,7 @@ list_link(struct list_link* prev, struct list_link* next) {
 	     &(pos)->member != (head);					\
 	     (pos) = container_of((pos)->member._next, type, member))
 
-#define list_foreach_item_backward(pos, head, type, member)		\
+#define list_foreach_item_bw(pos, head, type, member)			\
         for ((pos) = container_of((head)->_prev, type, member);		\
 	     &(pos)->member != (head);					\
 	     (pos) = container_of((pos)->member._prev, type, member))
@@ -168,14 +168,14 @@ list_link(struct list_link* prev, struct list_link* next) {
  * @head    : the head for list (&struct list_link)
  * @member  : the name of the list_link within the struct.
  */
-#define list_foreach_item_removal_safe(pos, n, head, type, member)	\
+#define list_foreach_item_safe(pos, n, head, type, member)		\
         for ((pos) = container_of((head)->_next, type, member),		\
 		     (n) = container_of((pos)->member._next, type, member); \
 	     &(pos)->member != (head);					\
 	     (pos) = (n),						\
 		     (n) = container_of((pos)->member._next, type, member))
 
-#define list_foreach_item_removal_safe_backward(pos, n, head, type, member) \
+#define list_foreach_item_safe_bk(pos, n, head, type, member)		\
         for ((pos) = container_of((head)->_prev, type, member),		\
 		     (n) = container_of((pos)->member._prev, type, member); \
 	     &(pos)->member != (head);					\

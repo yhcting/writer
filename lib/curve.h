@@ -44,8 +44,8 @@ struct curve {
 #define crv_foreach(crv, hd)				\
 	list_foreach_item(crv, hd, struct curve, lk)
 
-#define crv_foreach_removal_safe(crv, tmp, hd)				\
-	list_foreach_item_removal_safe(crv, tmp, hd, struct curve, lk)
+#define crv_foreach_safe(crv, tmp, hd)				\
+	list_foreach_item_safe(crv, tmp, hd, struct curve, lk)
 
 /*
  * @pt, @ptend : struct point*
@@ -141,7 +141,7 @@ crv_copy_line_attr(struct curve* dst, const struct curve* src) {
 static inline void
 crv_list_free(struct list_link* hd) {
 	struct curve *c, *tmp;
-	crv_foreach_removal_safe(c, tmp, hd)
+	crv_foreach_safe(c, tmp, hd)
 		crv_destroy(c);
 	list_init_link(hd);
 }

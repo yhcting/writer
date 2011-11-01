@@ -78,8 +78,8 @@ struct obj {
 #define pointnd_foreach(ptnd, hd)			\
 	list_foreach_item(ptnd, hd, struct pointnd, lk)
 
-#define pointnd_foreach_removal_safe(ptnd, tmp, hd)			\
-	list_foreach_item_removal_safe(ptnd, tmp, hd, struct pointnd, lk)
+#define pointnd_foreach_safe(ptnd, tmp, hd)				\
+	list_foreach_item_safe(ptnd, tmp, hd, struct pointnd, lk)
 
 static inline struct pointnd*
 pointnd_create(int32_t x, int32_t y) {
@@ -115,7 +115,7 @@ pointnd_add_last2(struct list_link* hd, const struct point* p) {
 static inline void
 pointnd_free_list(struct list_link* hd) {
 	struct pointnd *p, *tmp;
-	pointnd_foreach_removal_safe(p, tmp, hd)
+	pointnd_foreach_safe(p, tmp, hd)
 		pointnd_destroy(p);
 	list_init_link(hd);
 }
@@ -127,8 +127,8 @@ pointnd_free_list(struct list_link* hd) {
 #define linend_foreach(lnd, hd)				\
 	list_foreach_item(lnd, hd, struct linend, lk)
 
-#define linend_foreach_removal_safe(lnd, tmp, hd)			\
-	list_foreach_item_removal_safe(lnd, tmp, hd, struct linend, lk)
+#define linend_foreach_safe(lnd, tmp, hd)			\
+	list_foreach_item_safe(lnd, tmp, hd, struct linend, lk)
 
 static inline struct linend*
 linend_create(int32_t x0, int32_t y0, int32_t x1, int32_t y1) {
@@ -180,7 +180,7 @@ linend_add_last2(struct list_link* hd,
 static inline void
 linend_free_list(struct list_link* hd) {
 	struct linend *p, *tmp;
-	linend_foreach_removal_safe(p, tmp, hd)
+	linend_foreach_safe(p, tmp, hd)
 		linend_destroy(p);
 	list_init_link(hd);
 }
@@ -192,8 +192,8 @@ linend_free_list(struct list_link* hd) {
 #define lines_draw_foreach(ld, hd)				\
 	list_foreach_item(ld, hd, struct lines_draw, lk)
 
-#define lines_draw_foreach_removal_safe(ld, tmp, hd)			\
-	list_foreach_item_removal_safe(ld, tmp, hd, struct lines_draw, lk)
+#define lines_draw_foreach_safe(ld, tmp, hd)				\
+	list_foreach_item_safe(ld, tmp, hd, struct lines_draw, lk)
 
 static inline struct lines_draw*
 lines_draw_create(uint16_t color, uint8_t thick) {
@@ -233,7 +233,7 @@ lines_draw_destroy_deep(struct lines_draw* ld) {
 static inline void
 lines_draw_free_list(struct list_link* hd) {
 	struct lines_draw *p, *tmp;
-	lines_draw_foreach_removal_safe(p, tmp, hd)
+	lines_draw_foreach_safe(p, tmp, hd)
 		lines_draw_destroy(p);
 	list_init_link(hd);
 }
@@ -241,7 +241,7 @@ lines_draw_free_list(struct list_link* hd) {
 static inline void
 lines_draw_free_list_deep(struct list_link* hd) {
 	struct lines_draw *p, *tmp;
-	lines_draw_foreach_removal_safe(p, tmp, hd)
+	lines_draw_foreach_safe(p, tmp, hd)
 		lines_draw_destroy_deep(p);
 	list_init_link(hd);
 }

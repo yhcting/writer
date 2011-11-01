@@ -136,12 +136,10 @@ Java_com_yhc_writer_WSheet__1nativeDraw(JNIEnv* env, jclass jclazz,
 					jint l, jint t, jint r, jint b,
 					jfloat zf) {
 
-	jint* pixels = (*env)->GetIntArrayElements(env, jarr, NULL);
-
+	jint* pixels = wjni_get_int_array_direct(env, jarr);
 	wsheet_draw(jlong2ptr(sheet),
 		    pixels, w, h, ox, oy, l, t, r, b, zf);
-
-	(*env)->ReleaseIntArrayElements(env, jarr, pixels, JNI_ABORT);
+	wjni_release_int_array_direct(env, jarr, pixels);
 }
 
 

@@ -87,11 +87,11 @@ _hmodify(struct ahash* h, uint32_t bits) {
 		list_init_link(&h->map[i]);
 	/* re assign hash nodes */
 	for (i=0; i<oldmapsz; i++) {
-		list_foreach_item_removal_safe(n,
-					       tmp,
-					       &oldmap[i],
-					       struct _hn,
-					       lk) {
+		list_foreach_item_safe(n,
+				       tmp,
+				       &oldmap[i],
+				       struct _hn,
+				       lk) {
 			list_del(&n->lk);
 			list_add_last(&h->map[_hv(h, n)], &n->lk);
 		}
@@ -146,11 +146,11 @@ ahash_destroy(struct ahash* h) {
 	uint32_t     i;
 	struct _hn  *n, *tmp;
 	for (i=0; i<_hmapsz(h); i++) {
-		list_foreach_item_removal_safe(n,
-					       tmp,
-					       &h->map[i],
-					       struct _hn,
-					       lk) {
+		list_foreach_item_safe(n,
+				       tmp,
+				       &h->map[i],
+				       struct _hn,
+				       lk) {
 			list_del(&n->lk);
 			_ndestroy(h, n);
 		}

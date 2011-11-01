@@ -47,6 +47,10 @@ class G2d {
 			set(r.l, r.t, r.r, r.b);
 		}
 
+		void setEmpty() {
+			set(0, 0, 0, 0);
+		}
+
 		void offset(int dx, int dy) {
 			set(l + dx, t + dy, r + dx, b + dy);
 		}
@@ -55,11 +59,11 @@ class G2d {
 			return l >= r && t >= b;
 		}
 
-		final int width() {
+		int width() {
 			return r - l;
 		}
 
-		final int height() {
+		int height() {
 			return b - t;
 		}
 
@@ -91,6 +95,10 @@ class G2d {
 			set(r.l, r.t, r.r, r.b);
 		}
 
+		void setEmpty() {
+			set(0, 0, 0, 0);
+		}
+
 		void offset(float dx, float dy) {
 			set(l + dx, t + dy, r + dx, b + dy);
 		}
@@ -99,11 +107,11 @@ class G2d {
 			return l >= r && t >= b;
 		}
 
-		final float width() {
+		float width() {
 			return r - l;
 		}
 
-		final float height() {
+		float height() {
 			return b - t;
 		}
 	}

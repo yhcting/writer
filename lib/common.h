@@ -37,6 +37,23 @@
 #endif
 
 
+#ifdef CONFIG_ANDROID
+
+#define wjni_get_int_array_direct(env, jarr)	\
+	(*env)->GetIntArrayElements(env, jarr, NULL)
+#define wjni_release_int_array_direct(env, jarr, var)	\
+	(*env)->ReleaseIntArrayElements(env, jarr, var, JNI_ABORT)
+
+#else /* CONFIG_ANDROID */
+
+#define wjni_get_int_array_direct(env, jarr)			\
+	((jint*)(*env)->GetPrimitiveArrayCritical(env, jarr, NULL))
+#define wjni_release_int_array_direct(env, jarr, var)	\
+	(*env)->ReleasePrimitiveArrayCritical(env, jarr, var, 0)
+
+#endif /* CONFIG_ANDROID */
+
+
 /*
  * To be free from compiler warning
  * (cast from pointer to integer of different size)

@@ -174,7 +174,7 @@ nlist_del(struct node* n) {
 static inline void
 nlist_free(struct list_link* head) {
 	struct node *n, *tmp;
-	list_foreach_item_removal_safe(n, tmp, head, struct node, lk)
+	list_foreach_item_safe(n, tmp, head, struct node, lk)
 		/*
 		 * to improve performance, nmp_free() is used instead of
 		 *   node_free().
@@ -187,7 +187,7 @@ nlist_free(struct list_link* head) {
 static inline void
 nlist_free_deep(struct list_link* head) {
 	struct node *n, *tmp;
-	list_foreach_item_removal_safe(n, tmp, head, struct node, lk) {
+	list_foreach_item_safe(n, tmp, head, struct node, lk) {
 		/*
 		 * to improve performance node_free_deep() is not used.
 		 */
@@ -200,7 +200,7 @@ nlist_free_deep(struct list_link* head) {
 static inline void
 nlist_free_deep2(struct list_link* head, void(*vfree)(void*)) {
 	struct node *n, *tmp;
-	list_foreach_item_removal_safe(n, tmp, head, struct node, lk) {
+	list_foreach_item_safe(n, tmp, head, struct node, lk) {
 		/*
 		 * to improve performance node_free_deep2() is not used.
 		 */

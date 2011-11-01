@@ -4,5 +4,6 @@ GSYMS
 GTAGS
 ID
 *.o
+*.so
 writer
 
