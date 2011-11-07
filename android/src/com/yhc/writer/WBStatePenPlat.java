@@ -18,7 +18,6 @@
  *    along with this program.	If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
 
-
 package com.yhc.writer;
 
 import android.util.Log;
@@ -26,23 +25,26 @@ import android.view.MotionEvent;
 
 public class WBStatePenPlat implements WBStateI {
 	private static final String	_TAG	= "WBStatePenPlat";
-	private static final int        _ICON   = R.drawable.pen;
+	private static final int	_ICON	= R.drawable.pen;
 
 	// UI values
-	private static final int	_AINR	= 3; // Action Index NR;
+	private static final int _AINR = 2; // Action Index NR;
 
-	private WBStatePen	_st = null;
-	//  Why this flags is required!
-	//  We cannot know which point is motioned in multi-touch.
-	//  So, changing between multi-points-motions
-	//  (ex. 2-point-motion -> 3-points-motion -> 2-points-motion)
-	//    may cause unexpected action.
-	//  To avoid this, motions only from first 'down' to first 'up', are regarded as 'VALID'
-	private boolean		_valid_action = false;
+	private static final int _EVT_INVALID = -1;
+	private static final int _EVT_DRAW = 0;
+	private static final int _EVT_ZMV = 1; // zoom and move
+
+	private WBStatePen _st = null;
+	// Why this state is required!
+	// We cannot know which point is motioned in multi-touch.
+	// So, changing between multi-points-motions
+	// (ex. 1-point-motion -> 2-points-motion -> 1-points-motion)
+	//   may cause unexpected action.
+	private int _evtst = _EVT_INVALID;
 	// To start to save points at first MOVE event (NOT first DOWN event!)
-	private int		_nr_downedpt = 0; // number of downed-point.
-	private int[]		_px, _py; // previous position
-	private int[]		_x,  _y;  // current event position - to avoid too-frequent-'new' operation.
+	private int[] _px, _py; // previous position
+	private int[] _x, _y;	// current event position - to avoid
+				// too-frequent-'new' operation.
 
 	// set public to access dynamically through 'Class' class
 	// This is used at WToolSectorItem.
@@ -59,8 +61,8 @@ public class WBStatePenPlat implements WBStateI {
 		_y = new int[_AINR];
 
 		// To store previous value of point.
-		_px= new int[_AINR];
-		_py= new int[_AINR];
+		_px = new int[_AINR];
+		_py = new int[_AINR];
 	}
 
 	void color(int color) {
@@ -86,14 +88,16 @@ public class WBStatePenPlat implements WBStateI {
 
 	@Override
 	public boolean onTouch(Object meo) {
-		MotionEvent me = (MotionEvent)meo;
+		// !!! TODO - IMPORTANT !!!
+		// TUNNING THIS for BETTER UX!!!
+
+		MotionEvent me = (MotionEvent) meo;
 		int ai = me.getActionIndex();
 
 		switch (me.getAction()) {
 		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_POINTER_DOWN:
-		case MotionEvent.ACTION_POINTER_2_DOWN:
-		case MotionEvent.ACTION_POINTER_3_DOWN: {
+		case MotionEvent.ACTION_POINTER_2_DOWN: {
 			int x, y;
 			x = (int)me.getX(ai);
 			y = (int)me.getY(ai);
@@ -103,17 +107,15 @@ public class WBStatePenPlat implements WBStateI {
 			if (ai >= _AINR)
 				break; // Ignore
 
-			if (0 == _nr_downedpt)
-				// This is first down action!
-				// So, from now on, actions are valid.
-				_valid_action = true;
+			if (MotionEvent.ACTION_POINTER_DOWN == me.getAction()
+				|| MotionEvent.ACTION_DOWN == me.getAction())
+				_evtst = _EVT_DRAW;
 
-			_nr_downedpt++;
-
-			if (_nr_downedpt > _AINR)
-				// Something wrong in motion event.
-				// Fix it up!
-				_nr_downedpt = _AINR;
+			if (MotionEvent.ACTION_POINTER_2_DOWN == me.getAction()) {
+				if (_EVT_DRAW == _evtst)
+					_st.onActionEnd(); // end of drawing action.
+				_evtst = _EVT_ZMV;
+			}
 
 			_px[ai] = x;
 			_py[ai] = y;
@@ -124,62 +126,66 @@ public class WBStatePenPlat implements WBStateI {
 
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_POINTER_UP:
-		case MotionEvent.ACTION_POINTER_2_UP:
-		case MotionEvent.ACTION_POINTER_3_UP: {
-			_nr_downedpt--;
-			if (_nr_downedpt < 0)
-				// Something wrong in motion event.
-				// Fix it up!
-				_nr_downedpt = 0;
-
-			_valid_action = false;
+		case MotionEvent.ACTION_POINTER_2_UP: {
 			_x[ai] = _y[ai] = WConstants.INVALID_COORD_VALUE;
 
-			_st.onActionEnd();
+			if ((MotionEvent.ACTION_POINTER_DOWN == me.getAction()
+				|| MotionEvent.ACTION_UP == me.getAction()) && _EVT_DRAW == _evtst
+				|| MotionEvent.ACTION_POINTER_2_UP == me.getAction() && _EVT_ZMV == _evtst)
+				_st.onActionEnd();
+			_evtst = _EVT_INVALID;
 		} break;
 
 		case MotionEvent.ACTION_MOVE: {
-			if (!_valid_action)
+			if (_EVT_INVALID == _evtst)
 				break; // ignore invalid move action
 
 			// Max is _AINR
 			int ptnr = (me.getPointerCount() < _AINR)? me.getPointerCount(): _AINR;
 
 			// Get current (x,y) value.
-			for (int i=0; i < ptnr; i++) {
+			for (int i = 0; i < ptnr; i++) {
 				_x[i] = (int)me.getX(i);
 				_y[i] = (int)me.getY(i);
 			}
 
 			switch (me.getPointerCount()) {
 			case 1: {
-				_st.onActionLine(_px[0], _py[0], _x[0], _y[0]);
+				if (_EVT_DRAW == _evtst)
+					_st.onActionLine(_px[0], _py[0], _x[0], _y[0]);
 
 			} break;
 
 			case 2: {
-				// calcurate distance^2
-				double d1 = (_px[1] - _px[0]) * (_px[1] - _px[0])
-						+ (_py[1] - _py[0]) * (_py[1] - _py[0]);
-				double d2 = (_x[1] - _x[0]) * (_x[1] - _x[0])
-						+ (_y[1] - _y[0]) * (_y[1] - _y[0]);
+				if (_EVT_ZMV != _evtst)
+					break;
 
-				d1 = java.lang.Math.sqrt(d1);
-				d2 = java.lang.Math.sqrt(d2);
-				_st.onActionZoom((float)(d1/d2));
+				int dx0, dx1, dy0, dy1;
+				dx0 = _x[0] - _px[0];
+				dy0 = _y[0] - _py[0];
+				dx1 = _x[1] - _px[1];
+				dy1 = _y[1] - _py[1];
+
+				if (dx0 * dx1 < 0 || dy0 * dy1 < 0) {
+					// zoom operation.
+					// calcurate distance^2
+					double d1 = (_px[1] - _px[0]) * (_px[1] - _px[0])
+							+ (_py[1] - _py[0])
+							* (_py[1] - _py[0]);
+					double d2 = (_x[1] - _x[0]) * (_x[1] - _x[0])
+							+ (_y[1] - _y[0]) * (_y[1] - _y[0]);
+
+					d1 = java.lang.Math.sqrt(d1);
+					d2 = java.lang.Math.sqrt(d2);
+					if (d1 != d2)
+						_st.onActionZoom((float) (d1 / d2));
+				} else {
+					_st.onActionMove(-(dx0 + dx1) / 2, -(dy0 + dy1) / 2);
+				}
 			} break;
-
-			// Over 3
-			default:{
-				// Move
-				int dx, dy;
-				dx = WUtil.averageDelta(_px, _x, ptnr);
-				dy = WUtil.averageDelta(_py, _y, ptnr);
-				_st.onActionMove(-dx, -dy);
-			}
 			}
 
-			for (int i=0; i < ptnr; i++) {
+			for (int i = 0; i < ptnr; i++) {
 				_px[i] = _x[i];
 				_py[i] = _y[i];
 			}
