@@ -99,10 +99,16 @@ div_find_lines_draw(const struct div* div,
 
 void
 div_cutout(struct div* div,
+	   /* list of node which value is 'struct curve' */
+	   struct list_link* lrm, /* curves removed */
+	   /* list of node which value is 'struct curve' */
+	   struct list_link* ladd, /* curves newly added */
 	   int32_t l, int32_t t, int32_t r, int32_t b);
 
 void
 div_get_lines_draw(struct div* div, struct list_link* hd);
 
+void
+div_dump(struct div* div);
 
 #endif /* _DIv_h_ */

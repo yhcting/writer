@@ -94,7 +94,7 @@ line_intersectx(int32_t* ity0, int32_t* ity1,
 			int32_t y =
 				_round_off(s * (float)(y1 - y0) + (float)y0);
 			if ((x == x1 && y == y1)
-			    || yt >= y || y >= yb)
+			    || yt > y || y >= yb)
 				return 0;
 			*ity0 = y;
 			return 1;
@@ -122,7 +122,7 @@ line_intersecty(int32_t* itx0, int32_t* itx1,
 			int32_t x =
 				_round_off(s * (float)(x1 - x0) + (float)x0);
 			if ((y == y1 && x == x1)
-			    || xl >= x || x >= xr)
+			    || xl > x || x >= xr)
 				return 0;
 			*itx0 = x;
 			return 1;
@@ -194,7 +194,8 @@ rect_intersect_line(int32_t* ix0, int32_t* iy0,
 	 * To handle case like below, variable 'c' is used.
 	 * Calculating just boundary, function can't find intersection cases
 	 *   like below (close point at open edge...)
-	 * For more details, see comments of 'rect_intersect_line' at g2d.h.				   *            +--------+    +---O----+
+	 * For more details, see comments of 'rect_intersect_line' at g2d.h.
+	 *            +--------+    +---O----+
 	 *            |        |    |        |
 	 *            |        O or |        C ...
 	 *            |        |    |        |
@@ -205,7 +206,20 @@ rect_intersect_line(int32_t* ix0, int32_t* iy0,
 	 * Therefore, by using '-1' to open edge, we can caclulate first point
 	 *   that is really in the rectangle NOT on OPEN EDGE.
 	 *
+	 *
+	 * "if (! (p > pt && p->x == pt->x && p->y == pt->y))" is used to check
+	 *   check exceptional case : Example is...
+	 *            C--------+
+	 *            |        |
+	 *            |   O    |
+	 *            |        |
+	 *            +--------+
+	 * In this case, C is considered as intersection with top and left.
+	 * So, event if there is only ONE intersection point, logic may say,
+	 *   there is TWO intersection with out this check!.
+	 *
 	 * bedge_br : is this 'bottom' or 'right' edge?
+	 *
 	 */
 #define __check_intersect(bedge_br, v, min, max, x, y)			\
 	c = (bedge_br && x##0 > x##1)? -1: 0;				\
@@ -214,9 +228,11 @@ rect_intersect_line(int32_t* ix0, int32_t* iy0,
 	case 1: {							\
 		p->x = (v) + c;						\
 		p->y = i0;						\
-		wassert(p < pt + 2);					\
-		p++;							\
 		/* # of intersection point is at most 2 */		\
+		wassert(p < pt + 2);					\
+		/* To avoid getting duplicated intersection point */	\
+		if (!(p > pt && p->x == pt->x && p->y == pt->y))	\
+			p++;						\
 	} break;							\
 									\
 	case 2: {							\

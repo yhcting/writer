@@ -93,6 +93,12 @@ _test_curve_split_pts(const int32_t* pts, int32_t nrpts,
 	    || outsz != list_size(&out)) {
 		printf("  [ERR] in(%d), out(%d)\n",
 		       list_size(&in), list_size(&out));
+		printf("-------- in ---------\n");
+		crv_foreach(crv, &in)
+			crv_dump(crv);
+		printf("\n-------- out ---------\n");
+		crv_foreach(crv, &out)
+			crv_dump(crv);
 		wassert(0);
 	}
 	crv_list_free(&in);
@@ -133,16 +139,56 @@ _test_curve() {
 	_test_curve_split_set1(26, 1, 2);
 
 	rect_set(&r, 10, 10, 20, 20);
-	/*
+
 	_test_curve_split_pts(_pts0, sizeof(_pts0) / sizeof(_pts0[0]) / 2, &r,
 			      1, 2);
-	*/
 
 	_test_curve_split_pts(_pts1, sizeof(_pts1) / sizeof(_pts1[0]) / 2, &r,
 			      1, 2);
 
 	_test_curve_split_pts(_pts3, sizeof(_pts3) / sizeof(_pts3[0]) / 2, &r,
 			      1, 2);
+
+	{ /* Just for Scope */
+		/*
+		 *            +--------+
+		 *            |        |
+		 *        *   |        |
+		 *            |        |
+		 *            +--------*
+		 *                             *
+		 */
+		static const int32_t _tp[] = {
+			5, 15,
+			20, 20,
+			25, 23,
+		};
+		_test_curve_split_pts(_tp, arrsz(_tp) / 2, &r,
+				      1, 2);
+
+	}
+
+	{ /* Just for Scope */
+		static const int32_t _tp[] = {
+			1, 1,
+			4, 2,
+		};
+		rect_set(&r, 2, 1, 3, 8);
+		_test_curve_split_pts(_tp, arrsz(_tp) / 2, &r,
+				      1, 2);
+
+	}
+
+	{ /* Just for Scope */
+		static const int32_t _tp[] = {
+			0, 0,
+			1, 1,
+		};
+		rect_set(&r, 0, 0, 10, 10);
+		_test_curve_split_pts(_tp, arrsz(_tp) / 2, &r,
+				      1, 0);
+
+	}
 
 	return 0;
 }

@@ -104,13 +104,14 @@ crv_split(const struct curve* crv,
 	__add_sub_curve(struct list_link* hd, struct list_link* pts) {
 		struct curve* c;
 		unsigned int  nrpts = list_size(pts);
-		if (nrpts <= 0)
-			return; /* nothing to do */
-		wassert(nrpts > 1);
+		if (nrpts <= 1)
+			goto __done; /* do nothing */
+
 		c = crv_create((uint16_t)nrpts);
 		crv_copy_line_attr(c, crv);
 		crv_copy_points(c, pts);
 		list_add_last(hd, &c->lk);
+	__done:
 		pointnd_free_list(pts);
 	}
 
@@ -159,8 +160,10 @@ crv_split(const struct curve* crv,
 		pointnd_add_last2(&ptns, p1);
 		hdsv = hd;
 		hd = __get_hd(p1);
-		if (hd != hdsv)
+		if (hd != hdsv) {
 			__add_sub_curve(hdsv, &ptns);
+			pointnd_add_last2(&ptns, p1);
+		}
 
 #undef __add_intersect_point
 

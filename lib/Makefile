@@ -20,11 +20,11 @@ LDFLAGS+= -shared
 else
 
 CFLAGS+= \
-	-O2 -g -Wall \
+	-g -Wall \
 	-DCONFIG_TEST_EXECUTABLE
 
 TARGET=$(OUTDIR)writer
-LDFLAGS+= -lpthread
+LDFLAGS+= -pthread
 
 endif
 

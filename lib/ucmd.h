@@ -23,6 +23,7 @@
 
 #include "gtype.h"
 #include "list.h"
+#include "node.h"
 
 struct wsheet;
 
@@ -49,6 +50,21 @@ enum ucmd_st { /* state of ucmd */
 	UCMD_ST_UNKNOWN
 };
 
+/* ucmdd : ucmd Data */
+struct ucmdd_crv {
+	/* node link of 'struct curve*' */
+	struct list_link pcrvl; /* Pointer CuRVe List */
+	/* see ucmd.c for details */
+	struct list_link links; /* link info. of curve. - for UNDO/REDO */
+};
+
+struct ucmdd_cut {
+	/* list of node which value is 'struct curve' */
+	struct list_link lrm;  /* curves removed */
+	/* list of node which value is 'struct curve' */
+	struct list_link ladd; /* curves newly added */
+};
+
 struct ucmd {
 	enum ucmd_ty     ty;
 	enum ucmd_st     state;
@@ -58,16 +74,20 @@ struct ucmd {
 	/* DO NOT call below functions directly */
 	int  (*__alloc) (struct ucmd*);
 	void (*__free)  (struct ucmd*);
+
+	/* Below two functions are only for internal use! */
+	void (*___free_done)  (struct ucmd*);
+	void (*___free_undone)(struct ucmd*);
+
 	int  (*__start) (struct ucmd*);
 	int  (*__end)   (struct ucmd*);
 	int  (*__undo)  (struct ucmd*);
 	int  (*__redo)  (struct ucmd*);
 	/* notify user command data */
-	void (*__notify)(struct ucmd*, void*);
+	void (*__notify)(struct ucmd*, void*, void*);
 	union {
-#if 0
-		struct curves    crvs;/* UCMD_CURVE */
-#endif
+		struct ucmdd_crv  crv;
+		struct ucmdd_cut  cut;
 	} d;
 };
 
@@ -134,9 +154,9 @@ ucmd_redo(struct ucmd* uc) {
 }
 
 static inline void
-ucmd_notify(struct ucmd* uc, void* data) {
+ucmd_notify(struct ucmd* uc, void* d0, void* d1) {
 	wassert(UCMD_ST_PROGRESS == uc->state);
-	uc->__notify(uc, data);
+	uc->__notify(uc, d0, d1);
 }
 
 #endif /* _UCMd_h_ */

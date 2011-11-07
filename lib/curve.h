@@ -158,22 +158,6 @@ crv_list_nr_pts(struct list_link* hd) {
 	return cnt;
 }
 
-#if 0
-static inline struct curve*
-crv_get(struct curve* c) {
-	c->ref++;
-	return c;
-}
-
-static inline void
-crv_put(struct curve* c) {
-	wassert(c->ref);
-	c->ref--;
-	if (!c->ref)
-		wfree(crv);
-}
-#endif
-
 static inline void
 crv_to_pointnd_list(const struct curve* crv, struct list_link* hd) {
 	const struct point *pt, *ptend;

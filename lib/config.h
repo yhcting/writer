@@ -38,7 +38,7 @@
 /* #define CONFIG_ANDROID */
 
 
-/* #define CONFIG_DEBUG */
+#define CONFIG_DEBUG
 
 /*
  * For ARM specific optimization!
@@ -55,33 +55,13 @@
  * This is not well-structured code.
  * Only for staging and prototyping
  */
-/* #define CONFIG_DUALCORE */
-
-/*
- * use memory pool for line/node
- * (Not fully implemented yet!!)
- * pros
- *     performance enhencment
- *     (we can save time for calling 'malloc')
- * cons
- *     memory usage is kept as it's maximum vaule.
- *
- * Real test shows that this makes improvement.
- * But, it's not dominant on performance.
- */
-/* #define CONFIG_MEMPOOL */
+#define CONFIG_DUALCORE
 
 /* #define CONFIG_DBG_STATISTICS */
 
 /*
  * Configuration for system constants.
  */
-
-/*
- * size of node memory pool
- * (This is effective only when CONFIG_MEMPOOL is enabled)
- */
-#define CONFIG_NMP_SZ           256*1024
 
 /*
  * # of bits to use for user-command-history-size for undo/redo.

@@ -54,7 +54,7 @@ class WBStatePenPlat implements WBStateI {
 	}
 
 	private void onMouse3_drag(int x0, int y0, int x1, int y1) {
-		_st.onActionMove(x1 - x0, y1 - y0);
+		_st.onActionMove(x0 - x1, y0 - y1);
 	}
 
 	private void onMouse3_release(int x, int y) {

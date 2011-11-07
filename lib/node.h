@@ -29,53 +29,6 @@ struct node {
 	void*              v;  /* value of this node */
 };
 
-
-#ifdef CONFIG_MEMPOOL
-
-#include "mempool.h"
-
-extern struct mp* g_wsheet_nmp;
-
-static inline void
-nmp_create(uint32_t grpsz) {
-	g_wsheet_nmp = mp_create(grpsz, sizeof(struct node));
-}
-
-static inline void
-nmp_destroy(void) {
-	mp_destroy(g_wsheet_nmp);
-}
-
-static inline struct node*
-nmp_alloc(void) {
-	return (struct node*)mp_get(g_wsheet_nmp);
-}
-
-static inline void
-nmp_free(struct node* n) {
-	mp_put(g_wsheet_nmp, n);
-}
-
-#else /* CONFIG_MEMPOOL */
-
-#define nmp_create(x)
-#define nmp_destroy()
-
-static inline struct node*
-nmp_alloc(void) {
-	return wmalloc(sizeof(struct node));
-}
-
-static inline void
-nmp_free(struct node* n) {
-	wfree(n);
-}
-
-#endif /* CONFIG_MEMPOOL */
-
-
-
-
 static inline struct node*
 nodelk(const struct list_link* lk) {
 	return container_of(lk, struct node, lk);
@@ -130,7 +83,7 @@ node_init(struct node* n) {
 static inline struct node*
 node_alloc(void* v) {
 	struct node* n;
-	n = nmp_alloc();
+	n = wmalloc(sizeof(*n));
 	n->v = v;
 	return n;
 }
@@ -138,7 +91,7 @@ node_alloc(void* v) {
 static inline void*
 node_free(struct node* n) {
 	void* v = n->v;
-	nmp_free(n);
+	wfree(n);
 	return v;
 }
 /*
@@ -179,7 +132,7 @@ nlist_free(struct list_link* head) {
 		 * to improve performance, nmp_free() is used instead of
 		 *   node_free().
 		 */
-		nmp_free(n);
+		wfree(n);
 
 	list_init_link(head);
 }
@@ -192,7 +145,7 @@ nlist_free_deep(struct list_link* head) {
 		 * to improve performance node_free_deep() is not used.
 		 */
 		wfree(n->v);
-		nmp_free(n);
+		wfree(n);
 	}
 	list_init_link(head);
 }
@@ -205,7 +158,7 @@ nlist_free_deep2(struct list_link* head, void(*vfree)(void*)) {
 		 * to improve performance node_free_deep2() is not used.
 		 */
 		(vfree)? vfree(n->v): wfree(n->v);
-		nmp_free(n);
+		wfree(n);
 	}
 	list_init_link(head);
 }
@@ -217,6 +170,10 @@ nlist_add_nlist(struct list_link* head, const struct list_link* in) {
 		nlist_add(head, n->v);
 	}
 }
+
+#define nlist_foreach(n, hd) list_foreach_item(n, hd, struct node, lk)
+#define nlist_foreach_safe(n, tmp, hd)				\
+	list_foreach_item_safe(n, tmp, hd, struct node, lk)
 
 
 #endif /* _NODe_h_ */

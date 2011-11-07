@@ -30,6 +30,9 @@
 #include "g2d.h"
 #include "test_values.h"
 
+
+#define _INVALIDV 0x7fffffff
+
 static void
 _line_intersect(void) {
 	/*
@@ -401,12 +404,48 @@ _line_intersect(void) {
 				     15, 5,
 				     12, 5,
 				     5, 5, 10));
+
+	/*
+	 *              O  T
+	 *                 |     C
+	 *                 |
+	 *                 |
+	 *                 B
+	 */
+	wassert(1 == line_intersectx(&i0, &i1,
+				     1, 1,
+				     4, 2,
+				     2, 1, 8));
+
 }
 
 static void
 _set1_lnset(struct line* l, int i) {
 	line_set(l, _set1.lns[i][0], _set1.lns[i][1],
 		 _set1.lns[i][2], _set1.lns[i][3]);
+}
+
+static void
+_check_ln_rect(int x0, int y0, int x1, int y1,
+	       int l, int t, int r, int b,
+	       int nri,
+	       int ip0x, int ip0y, int ip1x, int ip1y) {
+	struct line  ln;
+	struct rect  rect;
+	struct point ip0, ip1;
+
+	line_set(&ln, x0, y0, x1, y1);
+	rect_set(&rect, l, t, r, b);
+	point_set(&ip0, _INVALIDV, _INVALIDV);
+	point_set(&ip1, _INVALIDV, _INVALIDV);
+	if (!(nri == rect_intersect_line5(&ip0, &ip1, &rect, &ln)
+	      && ip0x == ip0.x && ip0y == ip0.y
+	      && ip1x == ip1.x && ip1y == ip1.y)) {
+		printf("ERR: (%d, %d), (%d, %d)\n",
+		       ip0.x, ip0.y,
+		       ip1.x, ip1.y);
+		wassert(0);
+	}
 }
 
 static void
@@ -518,6 +557,19 @@ _rect_intersect(void) {
 
 	_set1_lnset(&l, 26);
 	wassert(2 == rect_intersect_line5(&ip0, &ip1, &r, &l));
+
+	_set1_lnset(&l, 27);
+	wassert(0 == rect_intersect_line5(&ip0, &ip1, &r, &l));
+
+	_check_ln_rect(1, 1, 4, 2,
+		       2, 1, 3, 8,
+		       2,
+		       2, 1, 3, 2);
+
+	_check_ln_rect(0, 0, 1, 1,
+		       0, 0, 10, 10,
+		       1,
+		       0, 0, _INVALIDV, _INVALIDV);
 }
 
 int

@@ -38,6 +38,9 @@ void
 his_deinit(void);
 
 void
+his_clean(void);
+
+void
 his_add(struct ucmd*);
 
 void

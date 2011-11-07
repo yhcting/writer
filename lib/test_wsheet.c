@@ -645,18 +645,27 @@ _test_find_lines(struct wsheet* wsh) {
 }
 
 static int
+_check_div_sz(struct wsheet* wsh, int row, int col, int sz) {
+	if (sz != _divlsz(row, col)) {
+		div_dump(&wsh->divs[row][col]);
+		return 0;
+	}
+	return 1;
+}
+
+static int
 _test_cutout_lines(struct wsheet* wsh) {
 	printf(" + cutting out lines => ");
 
 	wsheet_clean(wsh);
 	_add_line(wsh, 1, 1, 3, 3, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W, _DIV_H);
-	wassert(0 == _divlsz(0, 0));
+	wassert(_check_div_sz(wsh, 0, 0, 0));
 
 	wsheet_clean(wsh);
 	_add_line(wsh, 0, 0, 1, 1, 1, 0);
 	wsheet_cutout_lines(wsh, 0, 0, _DIV_W, _DIV_H);
-	wassert(0 == _divlsz(0, 0));
+	wassert(_check_div_sz(wsh, 0, 0, 0));
 
 	wsheet_clean(wsh);
 	_add_line(wsh, 3, 3, _DIV_W, _DIV_H, 1, 0);
@@ -816,7 +825,6 @@ _test_wsheet(void)
 	wsheet_destroy(wsh);
 
 	_test_draw();
-
 	wsys_deinit();
 	return 0;
 }

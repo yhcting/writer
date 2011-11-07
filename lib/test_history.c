@@ -20,116 +20,174 @@
 
 #include "config.h"
 
-#if 0 /* YHCTODO */
-
 #ifdef CONFIG_TEST_EXECUTABLE
 #include <stdio.h>
 
 #include "wsheet.h"
 #include "history.h"
+#include "list.h"
+#include "div.h"
+#include "test_values.h"
 
-#include "testpts.h"
-
-
-#define _divlsz(r, c)  list_size(&wsh->divs[r][c].lns)
-
-#define _addpts(pts)							\
-	wsheet_add_curve(wsh, pts,					\
-			 sizeof(pts) / sizeof((pts)[0]) / 2, 1, 0);
+static inline int
+_crvnr(struct wsheet*, int, int) __attribute__ ((unused));
+static inline int
+_crvnr(struct wsheet* wsh, int row, int col) {
+	return list_size(&wsh->divs[row][col].crvs);
+}
 
 static void
-_ucmd_curve() {
-	struct wsheet* wsh;
+_check_div_sz11(struct wsheet*, int, int, int, int)
+__attribute__ ((unused));
+static void
+_check_div_sz11(struct wsheet* wsh,
+		int d00, int d01, int d10, int d11) {
+	if(!(d00 == _crvnr(wsh, 0, 0)
+	     && d01 == _crvnr(wsh, 0, 1)
+	     && d10 == _crvnr(wsh, 1, 0)
+	     && d11 == _crvnr(wsh, 1, 1))) {
+		printf("======== div check error ========\n"
+		       "    %d    %d\n"
+		       "    %d    %d\n"
+		       ,_crvnr(wsh, 0, 0), _crvnr(wsh, 0, 1)
+		       ,_crvnr(wsh, 1, 0), _crvnr(wsh, 1, 1));
+		wassert(0);
+	}
+}
 
-	/* assumption of this test */
-	wassert(2 == (1 << CONFIG_HISTORY_SZBITS));
+static void
+_check_div_sz12(struct wsheet*,	int, int, int, int, int, int)
+__attribute__ ((unused));
+static void
+_check_div_sz12(struct wsheet* wsh,
+		int d00, int d01, int d02,
+		int d10, int d11, int d12) {
+	if(!(d00 == _crvnr(wsh, 0, 0)
+	     && d01 == _crvnr(wsh, 0, 1)
+	     && d02 == _crvnr(wsh, 0, 2)
+	     && d10 == _crvnr(wsh, 1, 0)
+	     && d11 == _crvnr(wsh, 1, 1)
+	     && d12 == _crvnr(wsh, 1, 2))) {
+		printf("======== div check error ========\n"
+		       "    %d    %d    %d\n"
+		       "    %d    %d    %d\n"
+		       ,_crvnr(wsh, 0, 0), _crvnr(wsh, 0, 1)
+		       ,_crvnr(wsh, 0, 2), _crvnr(wsh, 1, 0)
+		       ,_crvnr(wsh, 1, 1), _crvnr(wsh, 1, 2));
+		wassert(0);
+	}
+}
 
-	/**************
-	 * TEST 1
-	 **************/
-	wsh = wsheet_create();
-	wsheet_init(wsh, 10, 10, 5, 5);
-
-	_addpts(_pts0);
-	wassert(2 == _divlsz(0, 0)
-		&& 2 == _divlsz(0, 1)
-		&& 0 == _divlsz(0, 2)
-		&& 0 == _divlsz(1, 0)
-		&& 2 == _divlsz(1, 1)
-		&& 1 == _divlsz(1, 2)
-		);
-
-	his_undo();
-	wassert(0 == _divlsz(0, 0)
-		&& 0 == _divlsz(0, 1)
-		&& 0 == _divlsz(0, 2)
-		&& 0 == _divlsz(1, 0)
-		&& 0 == _divlsz(1, 1)
-		&& 0 == _divlsz(1, 2)
-		);
-
-	his_redo();
-	wassert(2 == _divlsz(0, 0)
-		&& 2 == _divlsz(0, 1)
-		&& 0 == _divlsz(0, 2)
-		&& 0 == _divlsz(1, 0)
-		&& 2 == _divlsz(1, 1)
-		&& 1 == _divlsz(1, 2)
-		);
-
-	wsheet_destroy(wsh);
-	wsys_deinit();
-
-
-
-	/**************
-	 * TEST 2
-	 **************/
-	wsh = wsheet_create();
-	wsheet_init(wsh, 10, 10, 5, 5);
-
-	/*
-	 * History size of test is 2.
-	 * So, last 'add' overwrites first history.
-	 */
-	_addpts(_pts0);
-	_addpts(_pts1);
-	_addpts(_pts2);
-
-	his_undo();
-	his_undo();
-	wassert(0 == his_sz());
-	his_undo(); /* this will do nothing */
-	wassert(0 == his_sz() && 2 == his_undosz());
-
-	wassert(2 == _divlsz(0, 0)
-		&& 2 == _divlsz(0, 1)
-		&& 0 == _divlsz(0, 2)
-		&& 0 == _divlsz(1, 0)
-		&& 2 == _divlsz(1, 1)
-		&& 1 == _divlsz(1, 2)
-		);
-
-	wsheet_destroy(wsh);
-	wsys_deinit();
-
+static void
+_check_div_sz22(struct wsheet*,	int, int, int, int, int, int, int, int, int)
+__attribute__ ((unused));
+static void
+_check_div_sz22(struct wsheet* wsh,
+		int d00, int d01, int d02,
+		int d10, int d11, int d12,
+		int d20, int d21, int d22) {
+	if(!(d00 == _crvnr(wsh, 0, 0)
+	     && d01 == _crvnr(wsh, 0, 1)
+	     && d02 == _crvnr(wsh, 0, 2)
+	     && d10 == _crvnr(wsh, 1, 0)
+	     && d11 == _crvnr(wsh, 1, 1)
+	     && d12 == _crvnr(wsh, 1, 2)
+	     && d20 == _crvnr(wsh, 2, 0)
+	     && d21 == _crvnr(wsh, 2, 1)
+	     && d22 == _crvnr(wsh, 2, 2))) {
+		printf("======== div check error ========\n"
+		       "    %d    %d    %d\n"
+		       "    %d    %d    %d\n"
+		       "    %d    %d    %d\n"
+		       ,_crvnr(wsh, 0, 0), _crvnr(wsh, 0, 1)
+		       ,_crvnr(wsh, 0, 2), _crvnr(wsh, 1, 0)
+		       ,_crvnr(wsh, 1, 1), _crvnr(wsh, 1, 2)
+		       ,_crvnr(wsh, 2, 0), _crvnr(wsh, 2, 1)
+		       ,_crvnr(wsh, 2, 2));
+		wassert(0);
+	}
 }
 
 
+static void
+_ucmd_curve(struct wsheet* wsh) {
+	wsheet_clean(wsh);
+	his_clean();
+	wsheet_add_curve(wsh, _pts0, arrsz(_pts0) / 2, 1, 0);
+	_check_div_sz11(wsh, 1, 1, 0, 1);
+	his_undo();
+	_check_div_sz11(wsh, 0, 0, 0, 0);
+	his_redo();
+	_check_div_sz11(wsh, 1, 1, 0, 1);
+
+}
+
+static void
+_ucmd_cutout(struct wsheet* wsh) {
+	wsheet_clean(wsh);
+	his_clean();
+	wsheet_add_curve(wsh, _pts0, arrsz(_pts0) / 2, 1, 0);
+	_check_div_sz11(wsh, 1, 1, 0, 1);
+	wsheet_cutout_lines(wsh, 13, 2, 18, 9);
+	_check_div_sz11(wsh, 1, 2, 0, 1);
+	his_undo();
+	_check_div_sz11(wsh, 1, 1, 0, 1);
+	his_redo();
+	_check_div_sz11(wsh, 1, 2, 0, 1);
+	his_undo();
+	his_undo();
+	_check_div_sz11(wsh, 0, 0, 0, 0);
+	his_undo();
+	_check_div_sz11(wsh, 0, 0, 0, 0);
+	his_redo();
+	his_redo();
+	his_redo();
+	_check_div_sz11(wsh, 1, 2, 0, 1);
+
+	/* complex user command */
+	wsheet_clean(wsh);
+	his_clean();
+	wsheet_add_curve(wsh, _pts0, arrsz(_pts0) / 2, 1, 0);
+	wsheet_add_curve(wsh, _pts2, arrsz(_pts2) / 2, 1, 0);
+	_check_div_sz11(wsh, 2, 2, 0, 1);
+	wsheet_cutout_lines(wsh, 13, 2, 18, 9);
+	_check_div_sz11(wsh, 2, 4, 0, 1);
+	his_undo();
+	_check_div_sz11(wsh, 2, 2, 0, 1);
+	his_undo();
+	_check_div_sz11(wsh, 1, 1, 0, 1);
+	wsheet_cutout_lines(wsh, 13, 2, 18, 9);
+	_check_div_sz11(wsh, 1, 2, 0, 1);
+	wsheet_add_curve(wsh, _pts2, arrsz(_pts2) / 2, 1, 0);
+	_check_div_sz11(wsh, 2, 3, 0, 1);
+	his_redo();
+	_check_div_sz11(wsh, 2, 3, 0, 1);
+	his_undo();
+	_check_div_sz11(wsh, 1, 2, 0, 1);
+	his_redo();
+	_check_div_sz11(wsh, 2, 3, 0, 1);
+	wsheet_cutout_lines(wsh, 4, 1, 8, 8);
+	_check_div_sz11(wsh, 3, 3, 0, 1);
+	wsheet_cutout_lines(wsh, 2, 1, 3, 8);
+	_check_div_sz11(wsh, 4, 3, 0, 1);
+}
 
 static int
 _test_history(void) {
-	int32_t memsv;
+	struct wsheet* wsh;
+	wsh = wsheet_create();
+	wsheet_init(wsh, 10, 10, 4, 4);
 
-#define __do(testname, func)			\
-	printf(" + " testname " => ");		\
-	memsv = wmblkcnt();			\
-	func;					\
-	wassert(memsv == wmblkcnt());		\
+#define __do(testname, func)						\
+	printf(" + " testname " => ");					\
+	func;								\
 	printf("passed\n");
 
-	__do("ucmd curve", _ucmd_curve());
+	__do("ucmd curve",   _ucmd_curve(wsh));
+	__do("ucmd cutout",  _ucmd_cutout(wsh));
 
+	wsheet_destroy(wsh);
+	wsys_deinit();
 	return 0;
 }
 
@@ -143,4 +201,3 @@ TESTFN(_test_history, HISTORY, TESTPRI_SUBSYSTEM)
 
 #endif /* CONFIG_TEST_EXECUTABLE */
 
-#endif

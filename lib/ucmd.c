@@ -26,209 +26,130 @@
 #include "list.h"
 #include "ucmd.h"
 #include "ahash.h"
+#include "curve.h"
 #include "wsheet.h"
 
-#if 0 /* YHCTODO */
+
 /******************************************
  * ut functions
  ******************************************/
-
-/* head/tail : division node. */
-static void
-_free_div_nodes(struct node* head, struct node* tail) {
-	struct node* n = NULL;
-	wassert(head && tail);
-
-	/*
-	 * NOTE
-	 *   DO NOT use list del !!
-	 *   'head' and 'tail' may not be valid link !
-	 * node_next(tail) may be invalid address. But, it's ok.
-	 */
-	while (n != tail) {
-		n = head;
-		head = node_next(head);
-		node_free_deep(n);
-	}
-}
 
 
 /******************************************
  * UCMD - Curve
  ******************************************/
+struct _curve_link {
+	struct list_link    lk;
+	struct list_link    crvlk;
+};
+
+static inline struct _curve_link*
+_curve_linklk(struct list_link* lk) {
+	return container_of(lk, struct _curve_link, lk);
+}
 
 static int
 _curve_alloc(struct ucmd* uc) {
-	struct curves* c = &uc->d.crvs;
-	list_init_link(&c->divns);
-	list_init_link(&c->crvs);
+	struct ucmdd_crv* d = &uc->d.crv;
+	list_init_link(&d->pcrvl);
+	list_init_link(&d->links);
 	return 0;
 }
 
 static void
-_curve_free(struct ucmd* uc) {
-	struct curves* c = &uc->d.crvs;
-	struct curve  *crv, *ctmp;
+_curve_free_done(struct ucmd* uc) {
+	struct ucmdd_crv* d = &uc->d.crv;
+	wassert(0 == list_size(&d->links));
+	/* free node */
+	nlist_free(&d->pcrvl);
+}
 
+static void
+_curve_free_undone(struct ucmd* uc) {
+	struct ucmdd_crv*    d = &uc->d.crv;
+	struct node*         n;
+	struct _curve_link  *clk, *tmp;
 	/*
-	 * 'c->divns' should be freed at 'command end'
+	 * Free memories of curve.
+	 * (This is the moment for curve to be really freed
+	 *   - removed even from history)
 	 */
-	wassert(0 == list_size(&c->divns));
-	switch(uc->state) {
 
-	case UCMD_ST_DONE: {
-		/*
-		 * nothing do do.
-		 * division node SHOULD NOT be freed
-		 */
-		;
-	} break;
+	/* free all _curve_links */
+	list_foreach_item_safe(clk, tmp, &d->links,
+			       struct _curve_link, lk)
+		wfree(clk);
+	list_init_link(&d->links);
 
-	case UCMD_ST_UNDONE: {
-		/*
-		 * 'undo' is executed for the lines added at division.
-		 * So, there is no other place to free memory of these lines.
-		 * (Division structure doesn't have link to these lines.)
-		 * Therefore free those here!
-		 */
-		list_foreach_item(crv, &c->crvs, struct curve, lk)
-			_free_div_nodes(crv->head, crv->tail);
-	} break;
-
-	default:
-		wassert(0);
-	}
-
-	/*
-	 * delete curve nodes itself
-	 */
-	list_foreach_item_removal_safe(crv, ctmp,
-				       &c->crvs, struct curve, lk) {
-		list_del(&crv->lk);
-		wfree(crv);
-	}
-
-	return;
+	/* free all real curves */
+	nlist_foreach(n, &d->pcrvl)
+		crv_destroy(n->v);
+	nlist_free(&d->pcrvl);
 }
 
 static int
 _curve_start(struct ucmd* uc) {
+	/* struct ucmdd_crv* d = &uc->d.crv; */
 	/* nothing to do */
 	return 0;
 }
 
 
-/*
- * Concept.
- *
- *  * Hashing all node address that should be cutout.
- *  * If prev is NOT in hash, this node is 'start of
- *      curve'.
- *  * If next is NOT in hash, this node is 'end of
- *      curve'.
- *  * If next and prev are all in hash, this is part of
- *      curve. So, link is NOT changed (preserved.)
- *
- * Here are steps
- *
- *  * Iterates lines to find 'start' or 'end' of curve.
- *  * If 'start of curve' is found, do following steps.
- *    Prev is stored as 'prev' at 'struct curves' and
- *      node is attached to 'curve' structure.
- *    (At this moment, node lost its original 'prev' link.
- *     But, it already stored at 'curve' structure.)
- *    Then, continue to follow line link until find end of
- *      curve.
- *  * If 'end of curve' is found, ignore this.
- */
 static int
 _curve_end(struct ucmd* uc) {
-	struct ahash*  ah;
-	struct node*   n;
-	struct curves* c = &uc->d.crvs;
-
-	ah = ahash_create();
-	wassert(ah);
-
-	/* hash all division nodes of curve */
-	list_foreach_item(n, &c->divns, struct node, lk)
-		ahash_add(ah, n->v);
-
-	/*
-	 * Find start of curve. And make curve history...
-	 */
-	list_foreach_item(n, &c->divns, struct node, lk) {
-		struct curve* crv;
-		struct node* divn = n->v; /* division node */
-
-		if (ahash_check(ah, node_prev(divn)))
-			continue;
-		/* 'n->v' is start of curve */
-		wassert(((struct line*)divn->v)->divlk == &divn->lk);
-
-		while (ahash_check(ah, divn))
-			divn = node_next(divn);
-
-		divn = node_prev(divn);
-		/* 'divn' is end of curve */
-		wassert(((struct line*)divn->v)->divlk == &divn->lk);
-
-		/* 'n->v' is head 'divn' is tail of curve */
-		crv = wmalloc(sizeof *crv);
-		crv->head = n->v;
-		crv->tail = divn;
-		list_add_last(&c->crvs, &crv->lk);
-	}
-
-	/*
-	 * now we don't need to keep divns.
-	 * let's free it.
-	 */
-	nlist_free(&c->divns);
-
-	ahash_destroy(ah);
-
+	/* struct ucmdd_crv* d = &uc->d.crv; */
 	return 0;
 }
 
 static int
 _curve_undo(struct ucmd* uc) {
-	struct curves* c = &uc->d.crvs;
-	struct curve*  crv;
+	struct ucmdd_crv*     d = &uc->d.crv;
+	struct node*          n;
+	struct curve*         crv;
+	struct _curve_link*   clk;
 
-	list_foreach_item(crv, &c->crvs, struct curve, lk) {
-		/* unlink curve from division */
-		list_link(&node_prev(crv->head)->lk,
-			  &node_next(crv->tail)->lk);
+	wassert(0 == list_size(&d->links));
+	nlist_foreach(n, &d->pcrvl) {
+		crv = n->v;
+		/* backup link information */
+		clk = wmalloc(sizeof(*clk));
+		clk->crvlk = crv->lk;
+		list_add_last(&d->links, &clk->lk);
+
+		/* unlink from division curve list */
+		list_del(&crv->lk);
 	}
 	return 0;
 }
 
 static int
 _curve_redo(struct ucmd* uc) {
-	struct curves* c = &uc->d.crvs;
-	struct node   *p, *n; /* prev and next of this curve */
-	struct curve*  crv;
+	struct ucmdd_crv*     d = &uc->d.crv;
+	struct node*          n;
+	struct curve*         crv;
+	struct _curve_link   *clk, *tmp;
 
-	/*
-	 * re-link curve to original division.
-	 */
-	list_foreach_item(crv, &c->crvs, struct curve, lk) {
-		/* c->head and c->tail are keeping it's division link */
-		p = node_prev(crv->head);
-		n = node_next(crv->tail);
-		/* add curve - sub list of division node. */
-		node_set_next(p, crv->head);
-		node_set_prev(n, crv->tail);
+	wassert(list_size(&d->pcrvl) == list_size(&d->links));
+
+	clk = _curve_linklk(list_first(&d->links));
+	nlist_foreach(n, &d->pcrvl) {
+		crv = n->v;
+		/* restore link information */
+		list_add(clk->crvlk._prev, clk->crvlk._next, &crv->lk);
+		clk = _curve_linklk(clk->lk._next);
 	}
 
+	/* free all _curve_links */
+	list_foreach_item_safe(clk, tmp, &d->links, struct _curve_link, lk)
+		wfree(clk);
+	list_init_link(&d->links);
 	return 0;
 }
 
 static void
-_curve_notify(struct ucmd* uc, void* data) {
-	struct curves* c = &uc->d.crvs;
-	nlist_add(&c->divns, data);
+_curve_notify(struct ucmd* uc, void* d0, void* d1) {
+	struct ucmdd_crv* d = &uc->d.crv;
+	nlist_add(&d->pcrvl, d0);
 }
 
 
@@ -239,11 +160,32 @@ _curve_notify(struct ucmd* uc, void* data) {
 
 static int
 _cut_alloc(struct ucmd* uc) {
+	struct ucmdd_cut* d = &uc->d.cut;
+	list_init_link(&d->lrm);
+	list_init_link(&d->ladd);
 	return 0;
 }
 
 static void
-_cut_free(struct ucmd* uc) {
+_cut_free_done(struct ucmd* uc) {
+	/* destory removed curves, and all nodes */
+	struct ucmdd_cut* d = &uc->d.cut;
+	struct node*      n;
+	nlist_foreach(n, &d->lrm)
+		crv_destroy(n->v);
+	nlist_free(&d->lrm);
+	nlist_free(&d->ladd);
+}
+
+static void
+_cut_free_undone(struct ucmd* uc) {
+	/* destory newly added curves, and all nodes */
+	struct ucmdd_cut* d = &uc->d.cut;
+	struct node*      n;
+	nlist_foreach(n, &d->ladd)
+		crv_destroy(n->v);
+	nlist_free(&d->ladd);
+	nlist_free(&d->lrm);
 }
 
 static int
@@ -258,16 +200,41 @@ _cut_end(struct ucmd* uc) {
 
 static int
 _cut_undo(struct ucmd* uc) {
+	struct ucmdd_cut* d = &uc->d.cut;
+	struct node*      n;
+	struct curve*     crv;
+	/* restore all 'removed curves' */
+	nlist_foreach(n, &d->lrm) {
+		crv = n->v;
+		list_link(&crv_prev(crv)->lk, &crv->lk);
+		list_link(&crv->lk,           &crv_next(crv)->lk);
+	}
 	return 0;
 }
 
 static int
 _cut_redo(struct ucmd* uc) {
+	struct ucmdd_cut* d = &uc->d.cut;
+	struct node*      n;
+	struct curve*     crv;
+	/* restore newly added curves */
+	nlist_foreach(n, &d->ladd) {
+		crv = n->v;
+		list_link(&crv_prev(crv)->lk, &crv->lk);
+		list_link(&crv->lk,           &crv_next(crv)->lk);
+	}
 	return 0;
 }
 
+/*
+ * @d0 : list of node of removed curves.
+ * @d1 : list of node of newly added curves.
+ */
 static void
-_cut_notify(struct ucmd* uc, void* data) {
+_cut_notify(struct ucmd* uc, void* d0, void* d1) {
+	struct ucmdd_cut* d = &uc->d.cut;
+	list_replace(d0, &d->lrm);
+	list_replace(d1, &d->ladd);
 }
 
 
@@ -281,7 +248,11 @@ _zoom_alloc(struct ucmd* uc) {
 }
 
 static void
-_zoom_free(struct ucmd* uc) {
+_zoom_free_done(struct ucmd* uc) {
+}
+
+static void
+_zoom_free_undone(struct ucmd* uc) {
 }
 
 static int
@@ -305,13 +276,13 @@ _zoom_redo(struct ucmd* uc) {
 }
 
 static void
-_zoom_notify(struct ucmd* uc, void* data) {
+_zoom_notify(struct ucmd* uc, void* d0, void* d1) {
 }
 
 
 /******************************************
  * UCMD - Move
- ******************************************/
+nn ******************************************/
 
 
 static int
@@ -320,7 +291,11 @@ _move_alloc(struct ucmd* uc) {
 }
 
 static void
-_move_free(struct ucmd* uc) {
+_move_free_done(struct ucmd* uc) {
+}
+
+static void
+_move_free_undone(struct ucmd* uc) {
 }
 
 static int
@@ -344,25 +319,44 @@ _move_redo(struct ucmd* uc) {
 }
 
 static void
-_move_notify(struct ucmd* uc, void* data) {
+_move_notify(struct ucmd* uc, void* d0, void* d1) {
 }
 
 /******************************************
- * Others
+ *
  ******************************************/
 
+static void
+_ucmd_common_free(struct ucmd* uc) {
+	switch(uc->state) {
 
-#define __INIT_UCMD(ucmd, pref)			\
-	[ucmd] = {				\
-		.ty       = ucmd,		\
-		.state    = UCMD_ST_INIT,	\
-		.__alloc  = &_##pref##_alloc,	\
-		.__free   = &_##pref##_free,	\
-		.__start  = &_##pref##_start,	\
-		.__end    = &_##pref##_end,	\
-		.__undo   = &_##pref##_undo,	\
-		.__redo   = &_##pref##_redo,	\
-		.__notify = &_##pref##_notify,	\
+	case UCMD_ST_DONE:
+		uc->___free_done(uc);
+	break;
+
+	case UCMD_ST_UNDONE:
+		uc->___free_undone(uc);
+	break;
+
+	default:
+		wassert(0);
+	}
+	return;
+}
+
+#define __INIT_UCMD(ucmd, pref)					\
+	[ucmd] = {						\
+		.ty       = ucmd,				\
+		.state    = UCMD_ST_INIT,			\
+		.__alloc  = &_##pref##_alloc,			\
+		.__free   = &_ucmd_common_free,			\
+		.___free_done = &_##pref##_free_done,		\
+		.___free_undone = &_##pref##_free_undone,	\
+		.__start  = &_##pref##_start,			\
+		.__end    = &_##pref##_end,			\
+		.__undo   = &_##pref##_undo,			\
+		.__redo   = &_##pref##_redo,			\
+		.__notify = &_##pref##_notify,			\
 	}
 
 static const struct ucmd _ucmd_init[] = {
@@ -384,4 +378,3 @@ ucmd_create(enum ucmd_ty type, struct wsheet* wsh) {
 	return uc;
 }
 
-#endif

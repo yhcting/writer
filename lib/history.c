@@ -25,10 +25,9 @@
 #include "cstack.h"
 #include "history.h"
 
-#if 0 /* YHCTODO */
-
 static struct cstk* _hstk;     /* history stack */
 static struct cstk* _undostk;  /* undo stack */
+
 
 void
 his_init(void) {
@@ -41,9 +40,16 @@ his_init(void) {
 
 void
 his_deinit(void) {
+	/* destory all ucmds */
 	cstk_destroy(_hstk);
 	cstk_destroy(_undostk);
 	_hstk = _undostk = NULL;
+}
+
+void
+his_clean(void) {
+	his_deinit();
+	his_init();
 }
 
 void
@@ -87,4 +93,3 @@ int32_t
 his_undosz(void) {
 	return cstk_sz(_undostk);
 }
-#endif

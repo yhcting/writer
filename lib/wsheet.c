@@ -48,10 +48,6 @@
  */
 static bool _initialized = false;
 
-#ifdef CONFIG_MEMPOOL
-struct mp* g_wsheet_nmp = NULL; /* node memory pool */
-#endif /* CONFIG_MEMPOOL */
-
 /*
  * Utility functions
  */
@@ -115,9 +111,7 @@ _create_curve_pointnd_list(struct list_link* hd) {
 static void
 _init(void) {
 	wassert(!_initialized);
-
-	nmp_create(CONFIG_NMP_SZ);
-	/* his_init(); */
+	his_init();
 
 	_initialized = true;
 }
@@ -127,11 +121,9 @@ static void
 _deinit(void) {
 	if (!_initialized)
 		return;
-
 	_initialized = false;
 
-	nmp_destroy();
-	/* his_deinit(); */
+	his_deinit();
 
 }
 
@@ -356,7 +348,15 @@ wsheet_find_div(struct wsheet* wsh, int32_t x, int32_t y) {
 void
 wsheet_cutout_lines(struct wsheet* wsh,
 		    int32_t l, int32_t t, int32_t r, int32_t b) {
+	struct ucmd* uc;
 	int32_t i, j;
+	/* list of node which value is 'struct curve' */
+	struct list_link lrm, ladd;
+
+	uc = _ucmd_quick_start(UCMD_CUT, wsh);
+
+	list_init_link(&lrm);
+	list_init_link(&ladd);
 	for (i = 0; i < wsh->rowN; i++) {
 		for (j = 0; j < wsh->colN; j++) {
 			if (rect_is_overlap(_divL(wsh, j), _divT(wsh, i),
@@ -365,10 +365,14 @@ wsheet_cutout_lines(struct wsheet* wsh,
 				/*
 				 * division affected by cutout rectangle.
 				 */
-				div_cutout(&wsh->divs[i][j], l, t, r, b);
+				div_cutout(&wsh->divs[i][j],
+					   &lrm, &ladd, l, t, r, b);
 			}
 		}
 	}
+
+	ucmd_notify(uc, &lrm, &ladd);
+	_ucmd_quick_end(uc);
 }
 
 
@@ -486,6 +490,7 @@ wsheet_add_curve(struct wsheet* wsh,
 		 uint8_t  thick,
 		 uint16_t color) {
 
+
 	void _add_pointnd_last(struct list_link* hd, int32_t x, int32_t y) {
 		if (hd)
 			pointnd_add_last(hd, x, y);
@@ -498,11 +503,13 @@ wsheet_add_curve(struct wsheet* wsh,
 			crv->color = color;
 			crv->thick = thick;
 			div_add_curve(div, crv);
+			ucmd_notify(wsh->ucmd, crv, NULL);
 			/* free memory for new start */
 			pointnd_free_list(hd);
 		}
 	}
 
+	struct ucmd* uc;
 	int32_t   x0, y0, x1, y1, itx, ity;
 	int32_t   ri, ci; /* row/column index */
 	const int32_t  *pt, *ptend;
@@ -512,6 +519,7 @@ wsheet_add_curve(struct wsheet* wsh,
 		wwarn();
 		return;
 	}
+	uc = _ucmd_quick_start(UCMD_CURVE, wsh);
 
 	list_init_link(&hd);
 	pt = pts;
@@ -525,7 +533,7 @@ wsheet_add_curve(struct wsheet* wsh,
 	x1 = *pt++;
 	y1 = *pt++;
 
-	wlogd("ADD : %d, %d, %d, %d", x0, y0, x1, y1);
+	/* wlogd("ADD : %d, %d, %d, %d", x0, y0, x1, y1); */
 #define __update_division_info(x, y)					\
 	do {								\
 		ci = _divI(x, wsh->divW);				\
@@ -567,6 +575,8 @@ wsheet_add_curve(struct wsheet* wsh,
 	__add_curve(&wsh->divs[ri][ci], phd);
 
 #undef __update_division_info
+
+	_ucmd_quick_end(uc);
 }
 
 #if 0
@@ -710,9 +720,6 @@ wsheet_draw(struct wsheet* wsh,
 	lines_draw_foreach(ld, &lns) {
 		struct linend* ln;
 		linend_foreach(ln, &ld->lns) {
-			wlogd("DRAW : %d, %d, %d, %d\n",
-			      ln->ln.p0.x, ln->ln.p0.y,
-			      ln->ln.p1.x, ln->ln.p1.y);
 			draw_line(pixels,
 				  w, h,
 				  _rbg16to32(ld->color),

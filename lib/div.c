@@ -26,6 +26,7 @@
 #include "gtype.h"
 #include "g2d.h"
 #include "list.h"
+#include "node.h"
 #include "div.h"
 
 /********************************
@@ -36,7 +37,7 @@ void
 div_clean(struct div* div) {
 	struct curve *n, *tmp;
 	/* clean lines */
-	list_foreach_item_safe(n, tmp, &div->crvs, struct curve, lk)
+	crv_foreach_safe(n, tmp, &div->crvs)
 		crv_destroy(n);
 
 	list_init_link(&div->crvs);
@@ -82,6 +83,8 @@ div_get_lines_draw(struct div* div, struct list_link* hd) {
 
 void
 div_cutout(struct div* div,
+	   struct list_link* lrm,
+	   struct list_link* ladd,
 	   int32_t l, int32_t t, int32_t r, int32_t b) {
 	struct curve       *crv, *tmp;
 	struct list_link    in;
@@ -91,13 +94,26 @@ div_cutout(struct div* div,
 	list_init_link(&out);
 
 	crv_foreach_safe(crv, tmp, &div->crvs) {
+		struct curve* c;
 		crv_split(crv, &in, &out, l, t, r, b);
+
+		/* store newly added curves */
+		crv_foreach(c, &out)
+			nlist_add(ladd, c);
+
 		/*
 		 * replace 'crv' with out-curve-list in the list.
 		 */
 		list_link(&crv_prev(crv)->lk, list_first(&out));
 		list_link(list_last(&out),    &crv_next(crv)->lk);
-		crv_destroy(crv);
+
+		/*
+		 * DO NOT destroy crv here!
+		 * The time to destroy is the moment of removing from
+		 *   history.
+		 */
+		nlist_add(lrm, crv);
+
 		crv_list_free(&in);
 		list_init_link(&out);
 	}
@@ -114,3 +130,12 @@ div_del_obj(struct div* div, struct obj* o) {
 	_del_obj_node_deep(div, n);
 }
 #endif
+
+void
+div_dump(struct div* div) {
+	struct curve* crv;
+	wlogd("*** Div Dump [%p] ***\n"
+	      "---------------------\n", div);
+	crv_foreach(crv, &div->crvs)
+		crv_dump(crv);
+}
