@@ -358,6 +358,15 @@ class WBoard {
 		_sheet.init(divW, divH, colN, rowN);
 	}
 
+	// action interfaces - Just Wrapper!!!
+	void curveStart()	{ _sheet.actionStart(WSheet.ACT_CURVE); }
+	void curveEnd()		{ _sheet.actionEnd(); }
+	void cutoutStart()	{ _sheet.actionStart(WSheet.ACT_CUTOUT); }
+	void cutoutEnd()	{ _sheet.actionEnd(); }
+	void zmvStart()		{ _sheet.actionStart(WSheet.ACT_ZMV); }
+	void zmvEnd()		{ _sheet.actionEnd(); }
+	void undo()		{ _sheet.undo(); }
+	void redo()		{ _sheet.redo(); }
 
 	void saveSheet(String fpath) throws IOException {
 		_sheet.save(fpath);
@@ -460,20 +469,31 @@ class WBoard {
 		}
 	}
 
+	// Draw active rectangle fully.
+	void drawSheet() {
+		_sheet.draw(_pixels,
+				_sw, _sh, _ar.l, _ar.t,
+				_ar.l, _ar.t, _ar.r, _ar.b,
+				_zf());
+	}
+
+	// Erase whole buffer with background color
+	// And then, draw sheet contents
+	void cleanDrawSheet() {
+		D2d.fill(_pixels, _sw, _sh, _bgcolor, 0, 0, _sw, _sh); // erase all.
+		drawSheet();
+	}
+
 	void drawSheet(int left, int top, int right, int bottom) {
 		getInvalidateArea(_tmpR, left, top, right, bottom, WConstants.LIMIT_THICK);
 		_sheet.draw(_pixels,
-				_sw,
-				_sh,
-				_ar.l,
-				_ar.t,
+				_sw, _sh, _ar.l, _ar.t,
 				_ar.l + _c2s(_tmpR.l),
 				_ar.t + _c2s(_tmpR.t),
 				_ar.l + _c2s(_tmpR.r),
 				_ar.t + _c2s(_tmpR.b),
 				_zf());
 	}
-
 
 	/*
 	 * Draw interface

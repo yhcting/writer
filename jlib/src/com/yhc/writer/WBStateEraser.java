@@ -43,6 +43,7 @@ class WBStateEraser {
 		_ox = _x = x;
 		_oy = _y = y;
 		_moveTrack.setEmpty();
+		_board.cutoutStart();
 	}
 
 	void onActionEnd() {
@@ -62,6 +63,7 @@ class WBStateEraser {
 		_board.drawSheet(_moveTrack.l, _moveTrack.t,
 					_moveTrack.r, _moveTrack.b);
 		_moveTrack.setEmpty();
+		_board.cutoutEnd();
 	}
 
 	void onActionMove(int x, int y) {

@@ -23,6 +23,7 @@
 
 #include <stdint.h>
 
+#include "wsheet.h"
 /*
  * All are not-locked!
  * So, NOT mt-safe
@@ -32,27 +33,33 @@
  * initialize history structure
  */
 void
-his_init(void);
+his_init(struct wsheet*);
 
 void
-his_deinit(void);
+his_deinit(struct wsheet*);
 
 void
-his_clean(void);
+his_clean(struct wsheet*);
 
 void
-his_add(struct ucmd*);
+his_add(struct wsheet*, struct ucmd*);
 
-void
-his_undo(void);
+/*
+ * @return : 1 (nothing happened), 0 (success).
+ */
+int32_t
+his_undo(struct wsheet*);
 
-void
-his_redo(void);
+/*
+ * @return : 1 (nothing happened), 0 (success).
+ */
+int32_t
+his_redo(struct wsheet*);
 
 int32_t
-his_sz(void);
+his_sz(struct wsheet*);
 
 int32_t
-his_undosz(void);
+his_undosz(struct wsheet*);
 
 #endif /* _HISTORy_h_ */

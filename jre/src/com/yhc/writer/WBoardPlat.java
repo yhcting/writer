@@ -1,8 +1,10 @@
 package com.yhc.writer;
 
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -18,7 +20,10 @@ import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.util.LinkedList;
 
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import com.yhc.writer.G2d.Rect;
 
@@ -30,20 +35,37 @@ MouseMotionListener,
 MouseWheelListener,
 ComponentListener
 {
-	private static final 	int 	_DIVISION_SIZE_FACTOR = 2;
+	// Not used. To make compiler be happy.
+	static final long serialVersionUID = 0;
 
-	private WBoard          _bpi; // Board Platform Independent
-	BufferedImage 		_bdimg;
-	private int             _wf, _hf;
+	private static final int _DIVISION_SIZE_FACTOR = 2;
+
+	private WBoard 		_bpi; // Board Platform Independent
+	private BufferedImage	_bdimg;
+	private int		_wf, _hf;
 
 	// This is uggly hack....
 	// -1 : before paint
 	//  0 : after paint
 	//  1 : end of initialization
 	private int             _bfirst_after_draw = -1;
-	/**************************
-	 * Event handler
-	 **************************/
+
+	// AMI : Action Map Index
+	private static final int _AMI_VK   = 0;
+	private static final int _AMI_MASK = 1;
+	private static final int _AMI_CMD  = 2;
+	private static final int _AMI_ACT  = 3;
+	private final Object[][] _actmap = {
+			{ KeyEvent.VK_U,
+				KeyEvent.CTRL_MASK,
+				"undo",
+				new KActUndo() },
+			{ KeyEvent.VK_R,
+				KeyEvent.CTRL_MASK,
+				"redo",
+				new KActRedo() }
+	};
+
 	private int _getX(MouseEvent e) {
 		int x = e.getX();
 		return (x < getWidth()) ? x : getWidth();
@@ -89,9 +111,50 @@ ComponentListener
 	public void mouseMoved(MouseEvent e) {
 	}
 
+	// ==================================
 	// Implements MouseWheelListener
+	// ==================================
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		_bpi.onTouch(e);
+	}
+
+	// ==================================
+	// Implements Key Actions
+	// ==================================
+	private class KActUndo extends AbstractAction {
+		// Not used. To make compiler be happy.
+		static final long serialVersionUID = 0;
+		public void actionPerformed(ActionEvent ev) {
+			_bpi.undo();
+			// redraw whole sheet again.
+			_bpi.cleanDrawSheet();
+			invalidatePlatBoard();
+		}
+	}
+
+	private class KActRedo extends AbstractAction {
+		// Not used. To make compiler be happy.
+		static final long serialVersionUID = 0;
+		public void actionPerformed(ActionEvent ev) {
+			_bpi.redo();
+			// redraw whole sheet again.
+			_bpi.cleanDrawSheet();
+			invalidatePlatBoard();
+		}
+	}
+
+	private void _addKeyBindings(JComponent comp) {
+		// Frame Key Bindings
+		for (Object[] e : _actmap) {
+			comp.getInputMap()
+				.put(KeyStroke.getKeyStroke(
+					(Integer) e[_AMI_VK],
+					(Integer) e[_AMI_MASK]),
+					e[_AMI_CMD]);
+			comp.getActionMap().put(
+				(String) e[_AMI_CMD],
+				(AbstractAction) e[_AMI_ACT]);
+		}
 	}
 
 	// ==================================
@@ -131,6 +194,7 @@ ComponentListener
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
+		_addKeyBindings(this);
 	}
 
 	@Override

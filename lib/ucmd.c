@@ -22,6 +22,7 @@
 
 #include "common.h"
 #include "gtype.h"
+#include "g2d.h"
 #include "node.h"
 #include "list.h"
 #include "ucmd.h"
@@ -146,10 +147,14 @@ _curve_redo(struct ucmd* uc) {
 	return 0;
 }
 
-static void
-_curve_notify(struct ucmd* uc, void* d0, void* d1) {
-	struct ucmdd_crv* d = &uc->d.crv;
-	nlist_add(&d->pcrvl, d0);
+void
+ucmd_crv_data(struct ucmd* uc, struct curve* crv) {
+	if (!uc)
+		return; /* nothing to do */
+
+	wassert(UCMD_CURVE == uc->ty
+		&& UCMD_ST_PROGRESS == uc->state);
+	nlist_add(&uc->d.crv.pcrvl, crv);
 }
 
 
@@ -230,96 +235,105 @@ _cut_redo(struct ucmd* uc) {
  * @d0 : list of node of removed curves.
  * @d1 : list of node of newly added curves.
  */
-static void
-_cut_notify(struct ucmd* uc, void* d0, void* d1) {
-	struct ucmdd_cut* d = &uc->d.cut;
-	list_replace(d0, &d->lrm);
-	list_replace(d1, &d->ladd);
+void
+ucmd_cut_data(struct ucmd* uc, struct list_link* lrm, struct list_link* ladd) {
+	if (!uc) {
+		/*
+		 * [ TODO ]
+		 * This code is somewhat duplicated with 'free_done' in ucmd.c
+		 * Is there any better way?
+		 */
+		/* free notify information */
+		struct node*      n;
+		nlist_foreach(n, lrm)
+			crv_destroy(n->v);
+		nlist_free(lrm);
+		nlist_free(ladd);
+	} else {
+		struct ucmdd_cut* d = &uc->d.cut;
+		wassert(UCMD_CUT == uc->ty
+			&& UCMD_ST_PROGRESS == uc->state);
+
+		list_replace(lrm, &d->lrm);
+		list_replace(ladd, &d->ladd);
+	}
 }
 
 
 /******************************************
- * UCMD - Zoom
+ * UCMD - ZMV
  ******************************************/
 
 static int
-_zoom_alloc(struct ucmd* uc) {
+_zmv_alloc(struct ucmd* uc) {
+	/* nothing to do */
 	return 0;
 }
 
 static void
-_zoom_free_done(struct ucmd* uc) {
+_zmv_free_done(struct ucmd* uc) {
+	/* nothing to do */
 }
 
 static void
-_zoom_free_undone(struct ucmd* uc) {
+_zmv_free_undone(struct ucmd* uc) {
+	/* nothing to do */
 }
 
 static int
-_zoom_start(struct ucmd* uc) {
+_zmv_start(struct ucmd* uc) {
+	/* nothing to do */
 	return 0;
 }
 
 static int
-_zoom_end(struct ucmd* uc) {
+_zmv_end(struct ucmd* uc) {
+	/* nothing to do */
 	return 0;
 }
 
 static int
-_zoom_undo(struct ucmd* uc) {
+_zmv_undo(struct ucmd* uc) {
 	return 0;
 }
 
 static int
-_zoom_redo(struct ucmd* uc) {
+_zmv_redo(struct ucmd* uc) {
 	return 0;
 }
 
-static void
-_zoom_notify(struct ucmd* uc, void* d0, void* d1) {
+void
+ucmd_zmv_data_before(struct ucmd* uc,
+		     int32_t l, int32_t t, int32_t r, int32_t b,
+		     int32_t ox, int32_t oy, float zf) {
+	if (!uc)
+		return;
+
+	struct ucmdd_zmv* zmv = &uc->d.zmv;
+	wassert(UCMD_ZMV == uc->ty
+		&& UCMD_ST_PROGRESS == uc->state);
+
+	rect_set(&zmv->old.r, l, t, r, b);
+	zmv->old.ox = ox;
+	zmv->old.oy = oy;
+	zmv->old.zf = zf;
 }
 
+void
+ucmd_zmv_data_after(struct ucmd* uc,
+		    int32_t l, int32_t t, int32_t r, int32_t b,
+		    int32_t ox, int32_t oy, float zf) {
+	if (!uc)
+		return;
 
-/******************************************
- * UCMD - Move
-nn ******************************************/
+	struct ucmdd_zmv* zmv = &uc->d.zmv;
+	wassert(UCMD_ZMV == uc->ty
+		&& UCMD_ST_PROGRESS == uc->state);
 
-
-static int
-_move_alloc(struct ucmd* uc) {
-	return 0;
-}
-
-static void
-_move_free_done(struct ucmd* uc) {
-}
-
-static void
-_move_free_undone(struct ucmd* uc) {
-}
-
-static int
-_move_start(struct ucmd* uc) {
-	return 0;
-}
-
-static int
-_move_end(struct ucmd* uc) {
-	return 0;
-}
-
-static int
-_move_undo(struct ucmd* uc) {
-	return 0;
-}
-
-static int
-_move_redo(struct ucmd* uc) {
-	return 0;
-}
-
-static void
-_move_notify(struct ucmd* uc, void* d0, void* d1) {
+	rect_set(&zmv->new.r, l, t, r, b);
+	zmv->new.ox = ox;
+	zmv->new.oy = oy;
+	zmv->new.zf = zf;
 }
 
 /******************************************
@@ -356,14 +370,12 @@ _ucmd_common_free(struct ucmd* uc) {
 		.__end    = &_##pref##_end,			\
 		.__undo   = &_##pref##_undo,			\
 		.__redo   = &_##pref##_redo,			\
-		.__notify = &_##pref##_notify,			\
 	}
 
 static const struct ucmd _ucmd_init[] = {
 	__INIT_UCMD(UCMD_CURVE, curve),
+	__INIT_UCMD(UCMD_ZMV,   zmv),
 	__INIT_UCMD(UCMD_CUT,   cut),
-	__INIT_UCMD(UCMD_ZOOM,  zoom),
-	__INIT_UCMD(UCMD_MOVE,  move)
 };
 
 #undef __INIT_UCMD
@@ -377,4 +389,3 @@ ucmd_create(enum ucmd_ty type, struct wsheet* wsh) {
 	uc->wsh = wsh;
 	return uc;
 }
-

@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include "wsheet.h"
+#include "ucmd.h"
 #include "history.h"
 #include "list.h"
 #include "div.h"
@@ -112,12 +113,19 @@ _check_div_sz22(struct wsheet* wsh,
 static void
 _ucmd_curve(struct wsheet* wsh) {
 	wsheet_clean(wsh);
-	his_clean();
+
+	wsheet_ucmd_start(wsh, UCMD_CURVE);
 	wsheet_add_curve(wsh, _pts0, arrsz(_pts0) / 2, 1, 0);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 1, 1, 0, 1);
-	his_undo();
+
+	his_undo(wsh);
+
 	_check_div_sz11(wsh, 0, 0, 0, 0);
-	his_redo();
+
+	his_redo(wsh);
+
 	_check_div_sz11(wsh, 1, 1, 0, 1);
 
 }
@@ -125,50 +133,103 @@ _ucmd_curve(struct wsheet* wsh) {
 static void
 _ucmd_cutout(struct wsheet* wsh) {
 	wsheet_clean(wsh);
-	his_clean();
+
+	wsheet_ucmd_start(wsh, UCMD_CURVE);
 	wsheet_add_curve(wsh, _pts0, arrsz(_pts0) / 2, 1, 0);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 1, 1, 0, 1);
+
+	wsheet_ucmd_start(wsh, UCMD_CUT);
 	wsheet_cutout_lines(wsh, 13, 2, 18, 9);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 1, 2, 0, 1);
-	his_undo();
+
+	his_undo(wsh);
+
 	_check_div_sz11(wsh, 1, 1, 0, 1);
-	his_redo();
+
+	his_redo(wsh);
+
 	_check_div_sz11(wsh, 1, 2, 0, 1);
-	his_undo();
-	his_undo();
+
+	his_undo(wsh);
+	his_undo(wsh);
+
 	_check_div_sz11(wsh, 0, 0, 0, 0);
-	his_undo();
+
+	his_undo(wsh);
+
 	_check_div_sz11(wsh, 0, 0, 0, 0);
-	his_redo();
-	his_redo();
-	his_redo();
+
+	his_redo(wsh);
+	his_redo(wsh);
+	his_redo(wsh);
+
 	_check_div_sz11(wsh, 1, 2, 0, 1);
 
 	/* complex user command */
 	wsheet_clean(wsh);
-	his_clean();
+
+	wsheet_ucmd_start(wsh, UCMD_CURVE);
 	wsheet_add_curve(wsh, _pts0, arrsz(_pts0) / 2, 1, 0);
+	wsheet_ucmd_end(wsh);
+
+	wsheet_ucmd_start(wsh, UCMD_CURVE);
 	wsheet_add_curve(wsh, _pts2, arrsz(_pts2) / 2, 1, 0);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 2, 2, 0, 1);
+
+	wsheet_ucmd_start(wsh, UCMD_CUT);
 	wsheet_cutout_lines(wsh, 13, 2, 18, 9);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 2, 4, 0, 1);
-	his_undo();
+
+	his_undo(wsh);
+
 	_check_div_sz11(wsh, 2, 2, 0, 1);
-	his_undo();
+
+	his_undo(wsh);
+
 	_check_div_sz11(wsh, 1, 1, 0, 1);
+
+	wsheet_ucmd_start(wsh, UCMD_CUT);
 	wsheet_cutout_lines(wsh, 13, 2, 18, 9);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 1, 2, 0, 1);
+
+	wsheet_ucmd_start(wsh, UCMD_CURVE);
 	wsheet_add_curve(wsh, _pts2, arrsz(_pts2) / 2, 1, 0);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 2, 3, 0, 1);
-	his_redo();
+
+	his_redo(wsh);
+
 	_check_div_sz11(wsh, 2, 3, 0, 1);
-	his_undo();
+
+	his_undo(wsh);
+
 	_check_div_sz11(wsh, 1, 2, 0, 1);
-	his_redo();
+
+	his_redo(wsh);
+
 	_check_div_sz11(wsh, 2, 3, 0, 1);
+
+	wsheet_ucmd_start(wsh, UCMD_CUT);
 	wsheet_cutout_lines(wsh, 4, 1, 8, 8);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 3, 3, 0, 1);
+
+	wsheet_ucmd_start(wsh, UCMD_CUT);
 	wsheet_cutout_lines(wsh, 2, 1, 3, 8);
+	wsheet_ucmd_end(wsh);
+
 	_check_div_sz11(wsh, 4, 3, 0, 1);
 }
 

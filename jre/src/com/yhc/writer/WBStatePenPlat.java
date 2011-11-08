@@ -26,7 +26,7 @@ class WBStatePenPlat implements WBStateI {
 	}
 
 	private void onMouse1_press(int x, int y) {
-		_st.onActionStart();
+		_st.onActionStart(WBStatePen.ACT_CURVE);
 	}
 
 	private void onMouse1_drag(int x0, int y0, int x1, int y1) {
@@ -50,7 +50,7 @@ class WBStatePenPlat implements WBStateI {
 	}
 
 	private void onMouse3_press(int x, int y) {
-		_st.onActionStart();
+		_st.onActionStart(WBStatePen.ACT_ZMV);
 	}
 
 	private void onMouse3_drag(int x0, int y0, int x1, int y1) {

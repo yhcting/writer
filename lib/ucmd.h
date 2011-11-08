@@ -26,7 +26,7 @@
 #include "node.h"
 
 struct wsheet;
-
+struct curve;
 /*
  * user command
  */
@@ -35,10 +35,11 @@ enum ucmd_ty {
 	 * This value may be used as array index.
 	 * So, starting from 0
 	 */
+	UCMD_LBOUND = -1, /* lower bound */
 	UCMD_CURVE = 0,
+	UCMD_ZMV, /* Zoom and move */
 	UCMD_CUT,
-	UCMD_ZOOM,
-	UCMD_MOVE,
+	UCMD_UBOUND, /* upper bound */
 };
 
 enum ucmd_st { /* state of ucmd */
@@ -65,6 +66,14 @@ struct ucmdd_cut {
 	struct list_link ladd; /* curves newly added */
 };
 
+struct ucmdd_zmv {
+	struct {
+		struct rect r;
+		int32_t     ox, oy;
+		float       zf;
+	} old, new;
+};
+
 struct ucmd {
 	enum ucmd_ty     ty;
 	enum ucmd_st     state;
@@ -83,11 +92,10 @@ struct ucmd {
 	int  (*__end)   (struct ucmd*);
 	int  (*__undo)  (struct ucmd*);
 	int  (*__redo)  (struct ucmd*);
-	/* notify user command data */
-	void (*__notify)(struct ucmd*, void*, void*);
 	union {
 		struct ucmdd_crv  crv;
 		struct ucmdd_cut  cut;
+		struct ucmdd_zmv  zmv;
 	} d;
 };
 
@@ -96,7 +104,7 @@ ucmd_create(enum ucmd_ty, struct wsheet*);
 
 static inline int
 ucmd_alloc(struct ucmd* uc) {
-	int r;
+	int r = -1;
 	wassert(UCMD_ST_INIT == uc->state);
 	r = uc->__alloc(uc);
 	if (!(r < 0))
@@ -115,7 +123,7 @@ ucmd_free(struct ucmd* uc) {
 
 static inline int
 ucmd_start(struct ucmd* uc) {
-	int r;
+	int r = -1;
 	wassert(UCMD_ST_READY == uc->state);
 	r = uc->__start(uc);
 	if (!(r < 0))
@@ -125,7 +133,7 @@ ucmd_start(struct ucmd* uc) {
 
 static inline int
 ucmd_end(struct ucmd* uc) {
-	int r;
+	int r = -1;
 	wassert(UCMD_ST_PROGRESS == uc->state);
 	r = uc->__end(uc);
 	if (!(r < 0))
@@ -135,7 +143,7 @@ ucmd_end(struct ucmd* uc) {
 
 static inline int
 ucmd_undo(struct ucmd* uc) {
-	int r;
+	int r = -1;
 	wassert(UCMD_ST_DONE == uc->state);
 	r = uc->__undo(uc);
 	if (!(r < 0))
@@ -145,7 +153,7 @@ ucmd_undo(struct ucmd* uc) {
 
 static inline int
 ucmd_redo(struct ucmd* uc) {
-	int r;
+	int r = -1;
 	wassert(UCMD_ST_UNDONE == uc->state);
 	r = uc->__redo(uc);
 	if (!(r < 0))
@@ -153,10 +161,26 @@ ucmd_redo(struct ucmd* uc) {
 	return r;
 }
 
-static inline void
-ucmd_notify(struct ucmd* uc, void* d0, void* d1) {
-	wassert(UCMD_ST_PROGRESS == uc->state);
-	uc->__notify(uc, d0, d1);
-}
+/******
+ * Ucmd Type Specific
+ * in case of 'NULL == ucmd', below 'xxx_data' function should
+ *   free all passed data if needed.
+ *   (usually, this routine should be similar with '__free_done()')
+ ******/
+void
+ucmd_crv_data(struct ucmd*, struct curve*);
+
+void
+ucmd_cut_data(struct ucmd*, struct list_link* lrm, struct list_link* ladd);
+
+void
+ucmd_zmv_data_before(struct ucmd*,
+		     int32_t l, int32_t t, int32_t r, int32_t b,
+		     int32_t ox, int32_t oy, float zf);
+
+void
+ucmd_zmv_data_after(struct ucmd*,
+		    int32_t l, int32_t t, int32_t r, int32_t b,
+		    int32_t ox, int32_t oy, float zf);
 
 #endif /* _UCMd_h_ */

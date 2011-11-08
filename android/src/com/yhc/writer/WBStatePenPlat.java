@@ -30,17 +30,13 @@ public class WBStatePenPlat implements WBStateI {
 	// UI values
 	private static final int _AINR = 2; // Action Index NR;
 
-	private static final int _EVT_INVALID = -1;
-	private static final int _EVT_DRAW = 0;
-	private static final int _EVT_ZMV = 1; // zoom and move
-
 	private WBStatePen _st = null;
 	// Why this state is required!
 	// We cannot know which point is motioned in multi-touch.
 	// So, changing between multi-points-motions
 	// (ex. 1-point-motion -> 2-points-motion -> 1-points-motion)
 	//   may cause unexpected action.
-	private int _evtst = _EVT_INVALID;
+	private int _act; // pen action
 	// To start to save points at first MOVE event (NOT first DOWN event!)
 	private int[] _px, _py; // previous position
 	private int[] _x, _y;	// current event position - to avoid
@@ -109,19 +105,19 @@ public class WBStatePenPlat implements WBStateI {
 
 			if (MotionEvent.ACTION_POINTER_DOWN == me.getAction()
 				|| MotionEvent.ACTION_DOWN == me.getAction())
-				_evtst = _EVT_DRAW;
+				_act = WBStatePen.ACT_CURVE;
 
 			if (MotionEvent.ACTION_POINTER_2_DOWN == me.getAction()) {
-				if (_EVT_DRAW == _evtst)
+				if (WBStatePen.ACT_CURVE == _act)
 					_st.onActionEnd(); // end of drawing action.
-				_evtst = _EVT_ZMV;
+				_act = WBStatePen.ACT_ZMV;
 			}
 
 			_px[ai] = x;
 			_py[ai] = y;
 			_x[ai] = _y[ai] = WConstants.INVALID_COORD_VALUE;
 
-			_st.onActionStart();
+			_st.onActionStart(_act);
 		} break;
 
 		case MotionEvent.ACTION_UP:
@@ -129,15 +125,15 @@ public class WBStatePenPlat implements WBStateI {
 		case MotionEvent.ACTION_POINTER_2_UP: {
 			_x[ai] = _y[ai] = WConstants.INVALID_COORD_VALUE;
 
-			if ((MotionEvent.ACTION_POINTER_DOWN == me.getAction()
-				|| MotionEvent.ACTION_UP == me.getAction()) && _EVT_DRAW == _evtst
-				|| MotionEvent.ACTION_POINTER_2_UP == me.getAction() && _EVT_ZMV == _evtst)
+			if ((MotionEvent.ACTION_POINTER_UP == me.getAction() || MotionEvent.ACTION_UP == me.getAction())
+					&& WBStatePen.ACT_CURVE == _act
+				|| MotionEvent.ACTION_POINTER_2_UP == me.getAction() && WBStatePen.ACT_ZMV == _act)
 				_st.onActionEnd();
-			_evtst = _EVT_INVALID;
+			_act = WBStatePen.ACT_INVALID;
 		} break;
 
 		case MotionEvent.ACTION_MOVE: {
-			if (_EVT_INVALID == _evtst)
+			if (WBStatePen.ACT_INVALID == _act)
 				break; // ignore invalid move action
 
 			// Max is _AINR
@@ -151,13 +147,13 @@ public class WBStatePenPlat implements WBStateI {
 
 			switch (me.getPointerCount()) {
 			case 1: {
-				if (_EVT_DRAW == _evtst)
+				if (WBStatePen.ACT_CURVE == _act)
 					_st.onActionLine(_px[0], _py[0], _x[0], _y[0]);
 
 			} break;
 
 			case 2: {
-				if (_EVT_ZMV != _evtst)
+				if (WBStatePen.ACT_ZMV != _act)
 					break;
 
 				int dx0, dx1, dy0, dy1;

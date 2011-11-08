@@ -49,6 +49,7 @@ _add_line(struct wsheet* wsh,
 	pts[1] = y0;
 	pts[2] = x1;
 	pts[3] = y1;
+
 	wsheet_add_curve(wsh, pts, 2, thick, color);
 }
 
@@ -708,7 +709,7 @@ _test_cutout_lines(struct wsheet* wsh) {
 	wsheet_clean(wsh);
 	_add_line(wsh, 2, 1, _DIV_W-1, 1, 1, 0);
 	wsheet_cutout_lines(wsh, 1, 0, _DIV_W-2, 3);
-	wassert(1 == _divlsz(0, 0));
+	wassert(_check_div_sz(wsh, 0, 0, 1));
 
 	wsheet_clean(wsh);
 	_add_line(wsh, 1, 1, _DIV_W-1, 1, 1, 0);

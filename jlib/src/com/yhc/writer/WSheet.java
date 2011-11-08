@@ -34,6 +34,11 @@ import java.util.ListIterator;
 import com.yhc.writer.G2d.Rect;
 
 class WSheet {
+	// This should match constants declared at native code (ucmd.h: enum ucmd_ty)!
+	static final int ACT_CURVE	= 0;
+	static final int ACT_ZMV	= 1; // zoom and move
+	static final int ACT_CUTOUT	= 2; // cutout
+
 	// to support 64bit host machine.
 	private final long _native_sheet;
 
@@ -109,6 +114,22 @@ class WSheet {
 		_nativeDraw(_native_sheet, pixels, w, h, ox, oy, l, t, r, b, zf);
 	}
 
+	void actionStart(int act) {
+		_nativeActionStart(_native_sheet, act);
+	}
+
+	void actionEnd() {
+		_nativeActionEnd(_native_sheet);
+	}
+
+	void undo() {
+		_nativeUndo(_native_sheet);
+	}
+
+	void redo() {
+		_nativeRedo(_native_sheet);
+	}
+
 	void save(String filepath) throws IOException {
 		if (0 == _nativeSave(_native_sheet, filepath)) {
 			// fail to save
@@ -126,26 +147,21 @@ class WSheet {
 	 * Native functions!!
 	 ******************************/
 	private static native long _nativeCreateWsheet();
-
 	private static native int  _nativeInitWsheet(long native_sheet, int divW, int divH, int colN, int rowN);
-
 	private static native void _nativeDestroyWsheet(long native_sheet);
-
 	private static native int  _nativeWidth(long native_sheet);
-
 	private static native int  _nativeHeight(long native_sheet);
-
 	private static native void _nativeCutout(long native_sheet, int l, int t, int r, int b);
-
 	private static native void _nativeAddCurve(long native_sheet, int[] pts, byte thick, short color);
-
 	private static native void _nativeDraw(long native_sheet, int[] pixels,
 						int w, int h, int ox, int oy,
 						int l, int t, int r, int b,
 						float zf);
-
-	private static native int _nativeSave(long native_sheet, String filepath);
-
-	private static native int _nativeLoad(long native_sheet, String filepath);
+	private static native void _nativeActionStart(long native_sheet, int act);
+	private static native void _nativeActionEnd(long native_sheet);
+	private static native int  _nativeUndo(long native_sheet);
+	private static native int  _nativeRedo(long native_sheet);
+	private static native int  _nativeSave(long native_sheet, String filepath);
+	private static native int  _nativeLoad(long native_sheet, String filepath);
 
 }

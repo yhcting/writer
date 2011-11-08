@@ -111,8 +111,6 @@ _create_curve_pointnd_list(struct list_link* hd) {
 static void
 _init(void) {
 	wassert(!_initialized);
-	his_init();
-
 	_initialized = true;
 }
 
@@ -122,28 +120,26 @@ _deinit(void) {
 	if (!_initialized)
 		return;
 	_initialized = false;
-
-	his_deinit();
-
 }
 
 
 static inline struct ucmd*
-_ucmd_quick_start(enum ucmd_ty ty, struct wsheet* wsh) {
+_ucmd_quick_start(struct wsheet* wsh, enum ucmd_ty ty) {
 	struct ucmd* uc = ucmd_create(ty, wsh);
 	wassert(uc);
-	wsheet_set_ucmd(wsh, uc);
 	ucmd_alloc(uc);
 	ucmd_start(uc);
+	wsheet_set_ucmd(wsh, uc);
 	return uc;
 }
 
 static inline void
-_ucmd_quick_end(struct ucmd* uc) {
-	ucmd_end(uc);
-	/* there is no active user command */
-	wsheet_set_ucmd(uc->wsh, NULL);
-	his_add(uc);
+_ucmd_quick_end(struct wsheet* wsh) {
+	wassert(wsh->ucmd);
+	ucmd_end(wsh->ucmd);
+	his_add(wsh, wsh->ucmd);
+	/* Set active user command to NULL */
+	wsheet_set_ucmd(wsh, NULL);
 }
 
 
@@ -320,6 +316,7 @@ wsheet_init(struct wsheet* wsh, int32_t divW, int32_t divH, int32_t colN, int32_
 	}
 
 	wsh->ucmd = NULL; /* there is no active user commmand */
+	his_init(wsh);
 }
 
 void
@@ -331,9 +328,55 @@ wsheet_destroy(struct wsheet* wsh) {
 		wfree(wsh->divs[i]);
 	}
 	wfree(wsh->divs);
+	/* There SHOULD NOT be running user command */
+	wassert(!wsh->ucmd);
+	his_deinit(wsh);
 	wfree(wsh);
 }
 
+void
+wsheet_clean(struct wsheet* wsh) {
+	int32_t i,j;
+	for (i = 0; i < wsh->rowN; i++)
+		for (j = 0; j < wsh->colN; j++)
+			div_clean(&wsh->divs[i][j]);
+	/* There SHOULD NOT be running user command */
+	wassert(!wsh->ucmd);
+	his_clean(wsh);
+}
+
+void
+wsheet_ucmd_start(struct wsheet* wsh, enum ucmd_ty ty) {
+	_ucmd_quick_start(wsh, ty);
+
+	/* nothing to do */
+	switch(ty) {
+	case UCMD_CURVE:
+	case UCMD_ZMV:
+	case UCMD_CUT: {
+	} break;
+
+	default:
+		wassert(0); /* shouldn't reach here! */
+	}
+}
+
+void
+wsheet_ucmd_end(struct wsheet* wsh) {
+	/* nothing to do */
+	switch(wsh->ucmd->ty) {
+	case UCMD_CURVE:
+	case UCMD_ZMV:
+	case UCMD_CUT: {
+	} break;
+
+	default:
+		wassert(0); /* shouldn't reach here! */
+	}
+
+	_ucmd_quick_end(wsh);
+
+}
 
 struct div*
 wsheet_find_div(struct wsheet* wsh, int32_t x, int32_t y) {
@@ -348,12 +391,14 @@ wsheet_find_div(struct wsheet* wsh, int32_t x, int32_t y) {
 void
 wsheet_cutout_lines(struct wsheet* wsh,
 		    int32_t l, int32_t t, int32_t r, int32_t b) {
-	struct ucmd* uc;
 	int32_t i, j;
 	/* list of node which value is 'struct curve' */
 	struct list_link lrm, ladd;
 
-	uc = _ucmd_quick_start(UCMD_CUT, wsh);
+	/*
+	 * "NULL == wsh->ucmd" means this is NOT USER Command!
+	 */
+	wassert(!wsh->ucmd || UCMD_CUT == wsh->ucmd->ty);
 
 	list_init_link(&lrm);
 	list_init_link(&ladd);
@@ -370,9 +415,7 @@ wsheet_cutout_lines(struct wsheet* wsh,
 			}
 		}
 	}
-
-	ucmd_notify(uc, &lrm, &ladd);
-	_ucmd_quick_end(uc);
+	ucmd_cut_data(wsh->ucmd, &lrm, &ladd);
 }
 
 
@@ -503,13 +546,13 @@ wsheet_add_curve(struct wsheet* wsh,
 			crv->color = color;
 			crv->thick = thick;
 			div_add_curve(div, crv);
-			ucmd_notify(wsh->ucmd, crv, NULL);
+			if (wsh->ucmd)
+				ucmd_crv_data(wsh->ucmd, crv);
 			/* free memory for new start */
 			pointnd_free_list(hd);
 		}
 	}
 
-	struct ucmd* uc;
 	int32_t   x0, y0, x1, y1, itx, ity;
 	int32_t   ri, ci; /* row/column index */
 	const int32_t  *pt, *ptend;
@@ -519,7 +562,11 @@ wsheet_add_curve(struct wsheet* wsh,
 		wwarn();
 		return;
 	}
-	uc = _ucmd_quick_start(UCMD_CURVE, wsh);
+
+	/*
+	 * "NULL == wsh->ucmd" means this is NOT USER Command!
+	 */
+	wassert(!wsh->ucmd || UCMD_CURVE == wsh->ucmd->ty);
 
 	list_init_link(&hd);
 	pt = pts;
@@ -575,8 +622,6 @@ wsheet_add_curve(struct wsheet* wsh,
 	__add_curve(&wsh->divs[ri][ci], phd);
 
 #undef __update_division_info
-
-	_ucmd_quick_end(uc);
 }
 
 #if 0

@@ -25,9 +25,14 @@ import java.util.LinkedList;
 
 
 class WBStatePen {
+	static final int ACT_INVALID	= -1;
+	static final int ACT_CURVE	= 0;
+	static final int ACT_ZMV	= 1;
+
 	private WBoard		_board = null;
 	private byte		_thick = 1;
 	private int		_color = 0xff000000;
+	private int		_act =	ACT_INVALID;
 
 	private boolean         _b_first_move = true;
 	private LinkedList<G2d.Point> _points	= new LinkedList<G2d.Point>();
@@ -53,7 +58,19 @@ class WBStatePen {
 		return _color;
 	}
 
-	void onActionStart() {
+	void onActionStart(int act) {
+		WDev.wassert(ACT_INVALID <= act && act <= ACT_ZMV);
+		_act = act;
+		switch(act) {
+		case ACT_CURVE:
+			_board.curveStart();
+		break;
+		case ACT_ZMV:
+			//_board.zmvStart();
+		break;
+		default:
+			WDev.wassert(false);
+		}
 		_b_first_move = true;
 	}
 
@@ -63,6 +80,17 @@ class WBStatePen {
 
 		_points.clear();
 		_b_first_move = true;
+		switch(_act) {
+		case ACT_CURVE:
+			_board.curveEnd();
+		break;
+		case ACT_ZMV:
+			//_board.zmvEnd();
+		break;
+		default:
+			WDev.wassert(false);
+		}
+		_act = ACT_INVALID;
 	}
 
 	void onActionLine(int x0, int y0, int x1, int y1) {

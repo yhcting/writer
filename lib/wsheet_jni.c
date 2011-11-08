@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "wsheet.h"
+#include "history.h"
 #include "file.h"
 /*
  * Class:     com_yhc_writer_WSheet
@@ -142,7 +143,49 @@ Java_com_yhc_writer_WSheet__1nativeDraw(JNIEnv* env, jclass jclazz,
 	wjni_release_int_array_direct(env, jarr, pixels);
 }
 
+/*
+ * Class:     com_yhc_writer_WSheet
+ * Method:    _nativeActionStart
+ * Signature: (JI)V
+ */
+JNIEXPORT void JNICALL
+Java_com_yhc_writer_WSheet__1nativeActionStart(JNIEnv* env, jclass jclazz,
+					       jlong sheet, jint act) {
+	wsheet_ucmd_start(jlong2ptr(sheet), act);
+}
 
+/*
+ * Class:     com_yhc_writer_WSheet
+ * Method:    _nativeActionEnd
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL
+Java_com_yhc_writer_WSheet__1nativeActionEnd(JNIEnv* env, jclass jclazz,
+					     jlong sheet) {
+	wsheet_ucmd_end(jlong2ptr(sheet));
+}
+
+/*
+ * Class:     com_yhc_writer_WSheet
+ * Method:    _nativeUndo
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL
+Java_com_yhc_writer_WSheet__1nativeUndo(JNIEnv* env, jclass jclazz,
+					jlong sheet) {
+	return (jint)his_undo(jlong2ptr(sheet));
+}
+
+/*
+ * Class:     com_yhc_writer_WSheet
+ * Method:    _nativeRedo
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL
+Java_com_yhc_writer_WSheet__1nativeRedo(JNIEnv* env, jclass jclazz,
+					jlong sheet) {
+	return (jint)his_redo(jlong2ptr(sheet));
+}
 
 /*
  * Class:     com_yhc_writer_WSheet

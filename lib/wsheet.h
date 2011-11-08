@@ -30,10 +30,12 @@
 #include "div.h"
 
 struct ucmd;
+struct cstk;
 
 struct wsheet {
-	struct list_link  his;  /* history of user command */
 	struct ucmd*      ucmd; /* current active user command */
+	struct cstk*      hstk; /* history stack */
+	struct cstk*      undostk; /* undo stack */
 	uint32_t          divW, divH, colN, rowN;
 	struct div**      divs; /* divs[row][col] */
 };
@@ -102,13 +104,8 @@ DECL_EXTERN_UT(void
 	       wsheet_find_lines_draw(const struct wsheet* wsh, struct list_link* out,
 				      int32_t l, int32_t t, int32_t r, int32_t b);)
 
-static inline void
-wsheet_clean(struct wsheet* wsh) {
-	int32_t i,j;
-	for (i = 0; i < wsh->rowN; i++)
-		for (j = 0; j < wsh->colN; j++)
-			div_clean(&wsh->divs[i][j]);
-}
+void
+wsheet_clean(struct wsheet* wsh);
 
 /*
  * 'r' and 'b' is open
@@ -122,6 +119,12 @@ wsheet_draw(struct wsheet* wsh,
 	    float zf);
 
 
+void
+wsheet_ucmd_start(struct wsheet* wsh, int ucmdty);
+
+void
+wsheet_ucmd_end(struct wsheet* wsh);
+
 static inline void
 wsheet_set_ucmd(struct wsheet* wsh, struct ucmd* uc) {
 	/*
@@ -133,6 +136,5 @@ wsheet_set_ucmd(struct wsheet* wsh, struct ucmd* uc) {
 	wassert((!wsh->ucmd && uc) || (wsh->ucmd && !uc));
 	wsh->ucmd = uc;
 }
-
 
 #endif /* _WSHEEt_h_ */

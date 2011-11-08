@@ -25,71 +25,68 @@
 #include "cstack.h"
 #include "history.h"
 
-static struct cstk* _hstk;     /* history stack */
-static struct cstk* _undostk;  /* undo stack */
-
-
 void
-his_init(void) {
-	wassert(!_hstk && !_undostk);
-	_hstk = cstk_create(CONFIG_HISTORY_SZBITS,
+his_init(struct wsheet* wsh) {
+	wsh->hstk = cstk_create(CONFIG_HISTORY_SZBITS,
 			    (void(*)(void*))&ucmd_free);
-	_undostk = cstk_create(CONFIG_HISTORY_SZBITS,
+	wsh->undostk = cstk_create(CONFIG_HISTORY_SZBITS,
 			       (void(*)(void*))&ucmd_free);
 }
 
 void
-his_deinit(void) {
+his_deinit(struct wsheet* wsh) {
 	/* destory all ucmds */
-	cstk_destroy(_hstk);
-	cstk_destroy(_undostk);
-	_hstk = _undostk = NULL;
+	cstk_destroy(wsh->hstk);
+	cstk_destroy(wsh->undostk);
+	wsh->hstk = wsh->undostk = NULL;
 }
 
 void
-his_clean(void) {
-	his_deinit();
-	his_init();
+his_clean(struct wsheet* wsh) {
+	his_deinit(wsh);
+	his_init(wsh);
 }
 
 void
-his_add(struct ucmd* uc) {
+his_add(struct wsheet* wsh, struct ucmd* uc) {
 	wassert(UCMD_ST_DONE == uc->state);
-	cstk_push(_hstk, uc);
+	cstk_push(wsh->hstk, uc);
 	/* clean 'undo'ed user command */
-	cstk_reset(_undostk);
+	cstk_reset(wsh->undostk);
 }
 
-void
-his_undo(void) {
-	struct ucmd* uc = cstk_pop(_hstk);
+int32_t
+his_undo(struct wsheet* wsh) {
+	struct ucmd* uc = cstk_pop(wsh->hstk);
 
 	/* stack is empty. nothing to do */
 	if (!uc)
-		return;
+		return 1;
 
 	ucmd_undo(uc);
-	cstk_push(_undostk, uc);
+	cstk_push(wsh->undostk, uc);
+	return 0;
 }
 
-void
-his_redo(void) {
-	struct ucmd* uc = cstk_pop(_undostk);
+int32_t
+his_redo(struct wsheet* wsh) {
+	struct ucmd* uc = cstk_pop(wsh->undostk);
 
 	/* stack is empty. nothing to do */
 	if (!uc)
-		return;
+		return 1;
 
 	ucmd_redo(uc);
-	cstk_push(_hstk, uc);
+	cstk_push(wsh->hstk, uc);
+	return 0;
 }
 
 int32_t
-his_sz(void) {
-	return cstk_sz(_hstk);
+his_sz(struct wsheet* wsh) {
+	return cstk_sz(wsh->hstk);
 }
 
 int32_t
-his_undosz(void) {
-	return cstk_sz(_undostk);
+his_undosz(struct wsheet* wsh) {
+	return cstk_sz(wsh->undostk);
 }
